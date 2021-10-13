@@ -1,4 +1,12 @@
 #!/usr/bin/env python3
+#
+# Assess and display entropy of images via different methods.
+# For usage, see `./main.py --help`.
+#
+# method           resources
+#
+# pseudo-spatial   https://stats.stackexchange.com/questions/235270/entropy-of-an-image
+#                  https://stackoverflow.com/questions/50313114/what-is-the-entropy-of-an-image-and-how-is-it-calculated
 
 
 import argparse
