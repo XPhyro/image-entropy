@@ -4,3 +4,4 @@
 - Execute the entropy assessment on each colour channel, then merge the results.
 - Implement different methods.
   - Implement delentropy (see [this](https://github.com/Causticity/sipp/blob/master/sentropy/sentropy.go)).
+  - Implement Kapur-Tsallis entropy (see [this](https://doi.org/10.1080/09720502.2020.1731976)).
