@@ -1,12 +1,19 @@
 #!/usr/bin/env python3
 #
+#
 # Assess and display entropy of images via different methods.
 # For usage, see `./main.py --help`.
 #
-# method           resources
 #
-# pseudo-spatial   https://stats.stackexchange.com/questions/235270/entropy-of-an-image
-#                  https://stackoverflow.com/questions/50313114/what-is-the-entropy-of-an-image-and-how-is-it-calculated
+# ---------------------------------
+# method         | resources
+#
+# pseudo-spatial | TO BE ADDED
+#
+# 2d-gradient    | https://arxiv.org/abs/1609.01117
+#
+# 2d-delentropy  | https://arxiv.org/abs/1609.01117
+# ---------------------------------
 
 
 import argparse
@@ -14,9 +21,17 @@ from copy import deepcopy as duplicate
 import numpy as np
 from PIL import Image
 from matplotlib import pyplot as plt
+import cv2 as cv
+from sys import argv
 
 
-def main():
+def log(msg):
+    print(f"{execname}: {msg}")
+
+
+def method_pseudo_spatial():
+    log("reading image")
+
     inputimg = Image.open(args.input)
     greyimg = inputimg.convert("L")
     inputimgarr = np.array(inputimg)
@@ -26,27 +41,27 @@ def main():
     imgshape = imgarr.shape
 
     kernsize = args.kernel_size
-    kerndist = round((kernsize - 1) / 2)
+    kernrad = round((kernsize - 1) / 2)
+
+    log("processing image")
 
     entropies = []
+    for i in range(imgshape[0]):
+        for j in range(imgshape[1]):
+            region = greyimgarr[
+                # ymax:ymin, xmax:xmin
+                np.max([0, i - kernrad]) : np.min([imgshape[0], i + kernrad]),
+                np.max([0, j - kernrad]) : np.min([imgshape[1], j + kernrad]),
+            ].flatten()
+            size = region.size
 
-    if args.method == "pseudo-spatial":
-        for i in range(imgshape[0]):
-            for j in range(imgshape[1]):
-                region = greyimgarr[
-                    # ymax:ymin, xmax:xmin
-                    np.max([0, i - kerndist]) : np.min([imgshape[0], i + kerndist]),
-                    np.max([0, j - kerndist]) : np.min([imgshape[1], j + kerndist]),
-                ].flatten()
-                size = region.size
+            probs = [np.size(region[region == i]) / size for i in set(region)]
+            entropy = np.sum([p * np.log2(1 / p) for p in probs])
 
-                probs = [np.size(region[region == i]) / size for i in set(region)]
-                entropy = np.sum([p * np.log2(1 / p) for p in probs])
+            entropies.append(entropy)
+            imgarr[i, j] = entropy
 
-                entropies.append(entropy)
-                imgarr[i, j] = entropy
-
-    print(f"Entropy: {np.average(entropies)} ± {np.std(entropies)}")
+    log("showing image")
 
     plt.subplot(1, 3, 1)
     plt.imshow(inputimgarr)
@@ -63,9 +78,85 @@ def main():
 
     plt.show()
 
+    log(f"entropy = {np.average(entropies)} ± {np.std(entropies)}")
+
+
+def method_gradient():
+    log("reading image")
+
+    inputimg = cv.imread(args.input)
+    greyimg = cv.cvtColor(inputimg, cv.COLOR_BGR2GRAY)
+
+    log("processing image")
+
+    # parameters
+    realgrad = True
+    concave = True
+
+    if realgrad:
+        grads = np.gradient(greyimg)
+        gradx = grads[0]
+        grady = grads[1]
+    else:
+        gradx = cv.filter2D(
+            greyimg,
+            cv.CV_8U,
+            cv.flip(np.array([[1, 0, -1], [1, 0, -1], [1, 0, -1]]), -1),
+            borderType=cv.BORDER_CONSTANT,
+        )
+        grady = cv.filter2D(
+            greyimg,
+            cv.CV_8U,
+            cv.flip(np.array([[1, 1, 1], [0, 0, 0], [-1, -1, -1]]), -1),
+            borderType=cv.BORDER_CONSTANT,
+        )
+
+    log("showing image")
+
+    plt.subplot(1, 4, 1)
+    plt.imshow(inputimg)
+    plt.title(f"Input Image")
+
+    plt.subplot(1, 4, 2)
+    plt.imshow(greyimg, cmap=plt.cm.gray)
+    plt.title(f"Greyscale Image")
+
+    plt.subplot(1, 4, 3)
+    entimg = (
+        np.bitwise_or(gradx, grady)
+        if not realgrad
+        else (
+            gradx + grady
+            if not concave
+            else np.invert(np.array(gradx + grady, dtype=int))
+        )
+    )
+    plt.imshow(entimg, cmap=plt.cm.gray)
+    plt.title(f"Delentropy Map Prototype")
+
+    refimg = cv.imread("ref/2021-10-02_17-18.png")
+    plt.subplot(1, 4, 4)
+    plt.imshow(refimg, cmap=plt.cm.gray)
+    plt.title("Reference Map")
+
+    plt.show()
+
+
+def method_delentropy():
+    log("not yet implemented")
+
+
+def main():
+    if args.method == "pseudo-spatial":
+        method_pseudo_spatial()
+    elif args.method == "2d-delentropy":
+        method_delentropy()
+    elif args.method == "2d-gradient":
+        method_gradient()
+
 
 def argtypemethod(val):
-    if val != "pseudo-spatial":
+    if val != "pseudo-spatial" and val != "2d-delentropy" and val != "2d-gradient":
         raise argparse.ArgumentTypeError(f"{val} is not a valid method.")
     return val
 
@@ -91,12 +182,14 @@ if __name__ == "__main__":
     parser.add_argument(
         "-m",
         "--method",
-        help="method to use. possible values: pseudo-spatial (default: pseudo-spatial)",
+        help="method to use. possible values: pseudo-spatial, 2d-delentropy, 2d-gradient (default: 2d-delentropy)",
         type=argtypemethod,
-        default="pseudo-spatial",
+        default="2d-delentropy",
     )
     # parser.add_argument("files", help="paths to input image files", nargs="*")
 
     args = parser.parse_args()
+
+    execname = argv[0]
 
     main()
