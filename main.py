@@ -156,9 +156,11 @@ def method_delentropy():
 
     if usecv:
         inputimg = cv.imread(args.input)
+        colourimg = cv.cvtColor(inputimg, cv.COLOR_BGR2RGB).astype(int)  # for plotting
         greyimg = cv.cvtColor(inputimg, cv.COLOR_BGR2GRAY).astype(int)
     else:
-        inputimg = imageio.imread(args.input).astype(int)
+        inputimg = imageio.imread(args.input)
+        colourimg = inputimg
         greyimg = imageio.imread(args.input, pilmode="L").astype(int)
 
     ### 1609.01117 page 10
@@ -197,34 +199,37 @@ def method_delentropy():
     log(f"entropy: {entropy}")
 
     plt.subplot(2, 3, 1)
-    plt.imshow(inputimg, cmap=plt.cm.gray)
+    if colourimg.shape == greyimg.shape and np.all(colourimg == greyimg):
+        plt.imshow(colourimg, cmap=plt.cm.gray)
+    else:
+        plt.imshow(colourimg)
     plt.title(f"Image")
 
     plt.subplot(2, 3, 2)
     plt.imshow(greyimg, cmap=plt.cm.gray)
     plt.title(f"Greyscale Image")
 
-    # the reference image seems to be bitwise inverted, I don't know why
-    gradimg = np.invert(gradimg)
-    plt.subplot(2, 3, 3)
-    plt.imshow(gradimg, cmap=plt.cm.gray)
-    plt.title(f"Gradient")
-
     refimg = cv.imread("ref/barbara.png")
-    plt.subplot(2, 3, 4)
+    plt.subplot(2, 3, 3)
     plt.imshow(refimg, cmap=plt.cm.gray)
     plt.title("Reference")
 
     # TODO: deldensity seems *mostly* zero, is this normal?
-    plt.subplot(2, 3, 5)
+    plt.subplot(2, 3, 4)
     plt.imshow(deldensity, cmap=plt.cm.gray)
     plt.colorbar()
     plt.title(f"Deldensity")
 
-    plt.subplot(2, 3, 6)
+    plt.subplot(2, 3, 5)
     plt.imshow(np.abs(entimg))
     plt.colorbar()
     plt.title(f"Delentropy")
+
+    # TODO: the reference image seems to be bitwise inverted, I don't know why
+    gradimg = np.invert(gradimg)
+    plt.subplot(2, 3, 6)
+    plt.imshow(gradimg, cmap=plt.cm.gray)
+    plt.title(f"Gradient")
 
     plt.show()
 
