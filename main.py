@@ -139,7 +139,7 @@ def method_gradient():
         )
     )
 
-    log(f"pseudo-entropy = {np.average(entimg)} ± {np.std(entimg)}")
+    log(f"gradient = {np.average(entimg)} ± {np.std(entimg)}")
     plt.imshow(entimg, cmap=plt.cm.gray)
     plt.title(f"Gradient")
 
@@ -214,6 +214,7 @@ def method_delentropy():
     # TODO: deldensity seems *mostly* zero, is this normal?
     plt.subplot(2, 3, 4)
     plt.imshow(deldensity, cmap=plt.cm.gray)
+    plt.colorbar()
     plt.title(f"Deldensity")
 
     plt.subplot(2, 3, 5)
