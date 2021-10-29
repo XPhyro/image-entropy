@@ -33,7 +33,7 @@ execname = argv[0]
 def parseargs():
     global args
 
-    parser = argparse.ArgumentParser(description="Image Entropy")
+    parser = argparse.ArgumentParser(description="Compute and display image entropy.")
 
     parser.add_argument(
         "-k",
@@ -52,7 +52,7 @@ def parseargs():
     parser.add_argument(
         "files",
         help="paths to input image files",
-        nargs="*",
+        nargs="+",
     )
 
     args = parser.parse_args()
