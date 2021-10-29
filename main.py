@@ -156,7 +156,7 @@ def method_delentropy():
     # with imageio's imread, the input image has to be greyscale.
     greyimg = imread(args.input).astype(int)
 
-    ### page 10
+    ### 1609.01117 page 10
 
     # $\nabla f(n) \approx f(n) - f(n - 1)$
     fx = (greyimg[:, 2:] - greyimg[:, :-2])[1:-1, :]
@@ -169,7 +169,7 @@ def method_delentropy():
     jrng = np.max([np.max(np.abs(fx)), np.max(np.abs(fy))])
     assert jrng <= 255
 
-    ### page 16
+    ### 1609.01117 page 16
 
     nbins = 2 * jrng + 1
     hist, edgex, edgey = np.histogram2d(
