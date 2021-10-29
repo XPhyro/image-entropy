@@ -23,6 +23,7 @@ from PIL import Image
 from matplotlib import pyplot as plt
 import cv2 as cv
 from sys import argv
+from imageio import imread
 
 
 def log(msg):
@@ -63,22 +64,27 @@ def method_pseudo_spatial():
 
     log("showing image")
 
-    plt.subplot(1, 3, 1)
+    plt.subplot(1, 4, 1)
     plt.imshow(inputimgarr)
     plt.title(f"Input Image")
 
-    plt.subplot(1, 3, 2)
+    plt.subplot(1, 4, 2)
     plt.imshow(greyimgarr, cmap=plt.cm.gray)
     plt.title(f"Greyscale Image")
 
-    plt.subplot(1, 3, 3)
+    plt.subplot(1, 4, 3)
     plt.imshow(imgarr, cmap=plt.cm.jet)
     plt.colorbar()
     plt.title(f"Entropy Map With {kernsize}x{kernsize} Kernel")
 
-    plt.show()
+    refimg = cv.imread("ref/barbara.png")
+    plt.subplot(1, 4, 4)
+    plt.imshow(refimg, cmap=plt.cm.gray)
+    plt.title("Reference Map")
 
     log(f"entropy = {np.average(entropies)} ± {np.std(entropies)}")
+
+    plt.show()
 
 
 def method_gradient():
@@ -131,10 +137,12 @@ def method_gradient():
             else np.invert(np.array(gradx + grady, dtype=int))
         )
     )
-    plt.imshow(entimg, cmap=plt.cm.gray)
-    plt.title(f"Delentropy Map Prototype")
 
-    refimg = cv.imread("ref/2021-10-02_17-18.png")
+    log(f"pseudo-entropy = {np.average(entimg)} ± {np.std(entimg)}")
+    plt.imshow(entimg, cmap=plt.cm.gray)
+    plt.title(f"Gradient")
+
+    refimg = cv.imread("ref/barbara.png")
     plt.subplot(1, 4, 4)
     plt.imshow(refimg, cmap=plt.cm.gray)
     plt.title("Reference Map")
@@ -143,10 +151,69 @@ def method_gradient():
 
 
 def method_delentropy():
-    log("not yet implemented")
+    # for some reason, opencv's imread produces weird results with delentropy.
+    # with imageio's imread, the input image has to be greyscale.
+    greyimg = imread(args.input).astype(int)
+
+    ### page 10
+
+    # $\nabla f(n) \approx f(n) - f(n - 1)$
+    fx = (greyimg[:, 2:] - greyimg[:, :-2])[1:-1, :]
+    fy = (greyimg[2:, :] - greyimg[:-2, :])[:, 1:-1]
+
+    # TODO: is this how fx and fy are combined?
+    entimg = fx + fy
+
+    # ensure $-255 \leq J \leq 255$
+    jrng = np.max([np.max(np.abs(fx)), np.max(np.abs(fy))])
+    assert jrng <= 255
+
+    ### page 16
+
+    nbins = 2 * jrng + 1
+    hist, edgex, edgey = np.histogram2d(
+        fx.flatten(),
+        fy.flatten(),
+        bins=nbins,
+        range=[[-jrng, jrng], [-jrng, jrng]],
+    )
+
+    deldensity = (hist / np.sum(hist)).T
+    safedeldensity = deldensity[np.nonzero(deldensity)]  # do not divide by zero
+    entropy = -np.sum(safedeldensity * np.log2(safedeldensity))
+    entropy /= 2  # 4.3 Papoulis generalized sampling halves the delentropy
+
+    # TODO: entropy is different from `sipp`, but similar
+    log(f"entropy: {entropy}")
+
+    plt.subplot(1, 4, 1)
+    plt.imshow(greyimg, cmap=plt.cm.gray)
+    plt.title(f"Input Greyscale Image")
+
+    # TODO: deldensity seems *mostly* zero, is this normal?
+    plt.subplot(1, 4, 2)
+    plt.imshow(deldensity, cmap=plt.cm.gray)
+    plt.title(f"Deldensity")
+
+    # the reference image seems to be inverted
+    entimg = np.invert(entimg)
+
+    plt.subplot(1, 4, 3)
+    plt.imshow(entimg, cmap=plt.cm.gray)
+    plt.title(f"Delentropy Map Prototype")
+
+    refimg = cv.imread("ref/barbara.png")
+    plt.subplot(1, 4, 4)
+    plt.imshow(refimg, cmap=plt.cm.gray)
+    plt.title("Reference Map")
+
+    plt.show()
 
 
 def main():
+    # don't hurt eyes
+    plt.style.use("dark_background")
+
     if args.method == "pseudo-spatial":
         method_pseudo_spatial()
     elif args.method == "2d-delentropy":
