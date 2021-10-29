@@ -27,14 +27,58 @@ import imageio
 import numpy as np
 
 
+execname = argv[0]
+
+
+def parseargs():
+    global args
+
+    parser = argparse.ArgumentParser(description="Image Entropy")
+
+    parser.add_argument(
+        "-k",
+        "--kernel-size",
+        help="kernel size. must be a positive odd integer. (default: 11, minimum: 3)",
+        type=argtypekernelsize,
+        default=11,
+    )
+    parser.add_argument(
+        "-m",
+        "--method",
+        help="method to use. possible values: pseudo-spatial, 2d-delentropy, 2d-gradient (default: 2d-delentropy)",
+        type=argtypemethod,
+        default="2d-delentropy",
+    )
+    parser.add_argument(
+        "files",
+        help="paths to input image files",
+        nargs="*",
+    )
+
+    args = parser.parse_args()
+
+
+def argtypemethod(val):
+    if val != "pseudo-spatial" and val != "2d-delentropy" and val != "2d-gradient":
+        raise argparse.ArgumentTypeError(f"{val} is not a valid method.")
+    return val
+
+
+def argtypekernelsize(val):
+    ival = int(val)
+    if ival <= 1 or ival % 2 != 1:
+        raise argparse.ArgumentTypeError(f"{ival} is not a valid kernel size.")
+    return ival
+
+
 def log(msg):
     print(f"{execname}: {msg}")
 
 
-def method_pseudo_spatial():
+def method_pseudo_spatial(path):
     log("reading image")
 
-    inputimg = Image.open(args.input)
+    inputimg = Image.open(path)
     greyimg = inputimg.convert("L")
     inputimgarr = np.array(inputimg)
     greyimgarr = np.array(greyimg)
@@ -85,13 +129,11 @@ def method_pseudo_spatial():
 
     log(f"entropy = {np.average(entropies)} ± {np.std(entropies)}")
 
-    plt.show()
 
-
-def method_gradient():
+def method_gradient(path):
     log("reading image")
 
-    inputimg = cv.imread(args.input)
+    inputimg = cv.imread(path)
     greyimg = cv.cvtColor(inputimg, cv.COLOR_BGR2GRAY)
 
     log("processing image")
@@ -147,22 +189,20 @@ def method_gradient():
     plt.imshow(refimg, cmap=plt.cm.gray)
     plt.title("Reference Map")
 
-    plt.show()
 
-
-def method_delentropy():
+def method_delentropy(path):
     # if set to True, use opencv
     # else use imageio
     param_usecv = True
 
     if param_usecv:
-        inputimg = cv.imread(args.input)
+        inputimg = cv.imread(path)
         colourimg = cv.cvtColor(inputimg, cv.COLOR_BGR2RGB).astype(int)  # for plotting
         greyimg = cv.cvtColor(inputimg, cv.COLOR_BGR2GRAY).astype(int)
     else:
-        inputimg = imageio.imread(args.input)
+        inputimg = imageio.imread(path)
         colourimg = inputimg
-        greyimg = imageio.imread(args.input, pilmode="L").astype(int)
+        greyimg = imageio.imread(path, pilmode="L").astype(int)
 
     ### 1609.01117 page 10
 
@@ -244,56 +284,24 @@ def method_delentropy():
     plt.imshow(gradimg, cmap=plt.cm.gray)
     plt.title(f"Gradient")
 
-    plt.show()
-
 
 def main():
+    parseargs()
+
     # don't hurt eyes
     plt.style.use("dark_background")
 
-    if args.method == "pseudo-spatial":
-        method_pseudo_spatial()
-    elif args.method == "2d-delentropy":
-        method_delentropy()
-    elif args.method == "2d-gradient":
-        method_gradient()
+    for i, fl in enumerate(args.files):
+        plt.figure(i + 1)
+        if args.method == "pseudo-spatial":
+            method_pseudo_spatial(fl)
+        elif args.method == "2d-delentropy":
+            method_delentropy(fl)
+        elif args.method == "2d-gradient":
+            method_gradient(fl)
 
-
-def argtypemethod(val):
-    if val != "pseudo-spatial" and val != "2d-delentropy" and val != "2d-gradient":
-        raise argparse.ArgumentTypeError(f"{val} is not a valid method.")
-    return val
-
-
-def argtypekernelsize(val):
-    ival = int(val)
-    if ival <= 1 or ival % 2 != 1:
-        raise argparse.ArgumentTypeError(f"{ival} is not a valid kernel size.")
-    return ival
+    plt.show()
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Image Entropy")
-
-    parser.add_argument("-i", "--input", help="path to input image file", type=str)
-    parser.add_argument(
-        "-k",
-        "--kernel-size",
-        help="kernel size. must be a positive odd integer. (default: 11, minimum: 3)",
-        type=argtypekernelsize,
-        default=11,
-    )
-    parser.add_argument(
-        "-m",
-        "--method",
-        help="method to use. possible values: pseudo-spatial, 2d-delentropy, 2d-gradient (default: 2d-delentropy)",
-        type=argtypemethod,
-        default="2d-delentropy",
-    )
-    # parser.add_argument("files", help="paths to input image files", nargs="*")
-
-    args = parser.parse_args()
-
-    execname = argv[0]
-
     main()
