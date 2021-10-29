@@ -17,14 +17,14 @@
 # ---------------------------------
 
 
-import argparse
-from copy import deepcopy as duplicate
-import numpy as np
 from PIL import Image
+from copy import deepcopy as duplicate
 from matplotlib import pyplot as plt
-import cv2 as cv
 from sys import argv
-from imageio import imread
+import argparse
+import cv2 as cv
+import imageio
+import numpy as np
 
 
 def log(msg):
@@ -154,7 +154,7 @@ def method_gradient():
 def method_delentropy():
     # for some reason, opencv's imread produces weird results with delentropy.
     # with imageio's imread, the input image has to be greyscale.
-    greyimg = imread(args.input).astype(int)
+    greyimg = imageio.imread(args.input).astype(int)
 
     ### 1609.01117 page 10
 
@@ -201,7 +201,7 @@ def method_delentropy():
 
     plt.subplot(1, 4, 3)
     plt.imshow(entimg, cmap=plt.cm.gray)
-    plt.title(f"Delentropy Map Prototype")
+    plt.title(f"Delentropy Map")
 
     refimg = cv.imread("ref/barbara.png")
     plt.subplot(1, 4, 4)
