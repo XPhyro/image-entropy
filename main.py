@@ -248,7 +248,7 @@ def method_delentropy(path):
     entimg /= 2  # 4.3 Papoulis generalized sampling halves the delentropy
     entropy = np.sum(entimg)
 
-    # TODO: entropy is different from `sipp`, but similar
+    # TODO: entropy is different from `sipp` and the article, but very similar
     log(f"entropy: {entropy}")
     log(f"entropy ratio: {entropy / 8.0}")
 
