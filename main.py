@@ -107,7 +107,7 @@ def method_pseudo_spatial(path):
             entropies.append(entropy)
             imgarr[i, j] = entropy
 
-    log("showing image")
+    log("preparing figure")
 
     plt.subplot(1, 4, 1)
     plt.imshow(inputimgarr)
@@ -159,7 +159,7 @@ def method_gradient(path):
             borderType=cv.BORDER_CONSTANT,
         )
 
-    log("showing image")
+    log("preparing figure")
 
     plt.subplot(1, 4, 1)
     plt.imshow(inputimg)
@@ -191,6 +191,8 @@ def method_gradient(path):
 
 
 def method_delentropy(path):
+    log("reading image")
+
     # if set to True, use opencv
     # else use imageio
     param_usecv = True
@@ -203,6 +205,8 @@ def method_delentropy(path):
         inputimg = imageio.imread(path)
         colourimg = inputimg
         greyimg = imageio.imread(path, pilmode="L").astype(int)
+
+    log("processing image")
 
     ### 1609.01117 page 10
 
@@ -248,6 +252,8 @@ def method_delentropy(path):
     log(f"entropy: {entropy}")
     log(f"entropy ratio: {entropy / 8.0}")
 
+    log("preparing figure")
+
     plt.subplot(2, 3, 1)
     if colourimg.shape == greyimg.shape and np.all(colourimg == greyimg):
         plt.imshow(colourimg, cmap=plt.cm.gray)
@@ -292,6 +298,8 @@ def main():
     plt.style.use("dark_background")
 
     for i, fl in enumerate(args.files):
+        log(f"processing file: {fl}")
+
         plt.figure(i + 1)
         if args.method == "pseudo-spatial":
             method_pseudo_spatial(fl)
@@ -299,6 +307,8 @@ def main():
             method_delentropy(fl)
         elif args.method == "2d-gradient":
             method_gradient(fl)
+
+        print()
 
     plt.show()
 
