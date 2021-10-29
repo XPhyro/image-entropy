@@ -153,17 +153,26 @@ def method_gradient():
 
 def method_delentropy():
     # for some reason, opencv's imread produces weird results with delentropy.
-    # with imageio's imread, the input image has to be greyscale.
-    greyimg = imageio.imread(args.input).astype(int)
+    usecv = False
+
+    if usecv:
+        inputimg = cv.imread(args.input)
+        greyimg = cv.cvtColor(inputimg, cv.COLOR_BGR2GRAY)
+    else:
+        greyimg = imageio.imread(args.input, pilmode="L").astype(int)
 
     ### 1609.01117 page 10
 
     # $\nabla f(n) \approx f(n) - f(n - 1)$
-    fx = (greyimg[:, 2:] - greyimg[:, :-2])[1:-1, :]
-    fy = (greyimg[2:, :] - greyimg[:-2, :])[:, 1:-1]
+    fx = greyimg[:, 2:] - greyimg[:, :-2]
+    fy = greyimg[2:, :] - greyimg[:-2, :]
 
-    # TODO: is this how fx and fy are combined?
-    entimg = fx + fy
+    # fix shape
+    fx = fx[1:-1, :]
+    fy = fy[:, 1:-1]
+
+    # TODO: is this how fx and fy are combined? (it's for plotting and not used in computation anyways)
+    gradimg = fx + fy
 
     # ensure $-255 \leq J \leq 255$
     jrng = np.max([np.max(np.abs(fx)), np.max(np.abs(fy))])
@@ -179,34 +188,38 @@ def method_delentropy():
         range=[[-jrng, jrng], [-jrng, jrng]],
     )
 
-    deldensity = (hist / np.sum(hist)).T
-    safedeldensity = deldensity[np.nonzero(deldensity)]  # do not divide by zero
-    entropy = -np.sum(safedeldensity * np.log2(safedeldensity))
-    entropy /= 2  # 4.3 Papoulis generalized sampling halves the delentropy
+    deldensity = hist / np.sum(hist)
+    entimg = deldensity * np.ma.log2(deldensity)
+    entimg /= 2  # 4.3 Papoulis generalized sampling halves the delentropy
+    entropy = -np.sum(entimg)
 
     # TODO: entropy is different from `sipp`, but similar
     log(f"entropy: {entropy}")
 
-    plt.subplot(1, 4, 1)
+    plt.subplot(2, 3, 1)
     plt.imshow(greyimg, cmap=plt.cm.gray)
-    plt.title(f"Input Greyscale Image")
+    plt.title(f"Greyscale Image")
+
+    # the reference image seems to be bitwise inverted, I don't know why
+    gradimg = np.invert(gradimg)
+    plt.subplot(2, 3, 2)
+    plt.imshow(gradimg, cmap=plt.cm.gray)
+    plt.title(f"Gradient")
+
+    refimg = cv.imread("ref/barbara.png")
+    plt.subplot(2, 3, 3)
+    plt.imshow(refimg, cmap=plt.cm.gray)
+    plt.title("Reference")
 
     # TODO: deldensity seems *mostly* zero, is this normal?
-    plt.subplot(1, 4, 2)
+    plt.subplot(2, 3, 4)
     plt.imshow(deldensity, cmap=plt.cm.gray)
     plt.title(f"Deldensity")
 
-    # the reference image seems to be inverted
-    entimg = np.invert(entimg)
-
-    plt.subplot(1, 4, 3)
-    plt.imshow(entimg, cmap=plt.cm.gray)
-    plt.title(f"Delentropy Map")
-
-    refimg = cv.imread("ref/barbara.png")
-    plt.subplot(1, 4, 4)
-    plt.imshow(refimg, cmap=plt.cm.gray)
-    plt.title("Reference Map")
+    plt.subplot(2, 3, 5)
+    plt.imshow(np.abs(entimg))
+    plt.colorbar()
+    plt.title(f"Delentropy")
 
     plt.show()
 
