@@ -96,11 +96,10 @@ def method_gradient():
 
     log("processing image")
 
-    # parameters
-    realgrad = True
-    concave = True
+    param_realgrad = True
+    param_concave = True
 
-    if realgrad:
+    if param_realgrad:
         grads = np.gradient(greyimg)
         gradx = grads[0]
         grady = grads[1]
@@ -131,10 +130,10 @@ def method_gradient():
     plt.subplot(1, 4, 3)
     entimg = (
         np.bitwise_or(gradx, grady)
-        if not realgrad
+        if not param_realgrad
         else (
             gradx + grady
-            if not concave
+            if not param_concave
             else np.invert(np.array(gradx + grady, dtype=int))
         )
     )
@@ -152,9 +151,11 @@ def method_gradient():
 
 
 def method_delentropy():
-    usecv = True
+    # if set to True, use opencv
+    # else use imageio
+    param_usecv = True
 
-    if usecv:
+    if param_usecv:
         inputimg = cv.imread(args.input)
         colourimg = cv.cvtColor(inputimg, cv.COLOR_BGR2RGB).astype(int)  # for plotting
         greyimg = cv.cvtColor(inputimg, cv.COLOR_BGR2GRAY).astype(int)
@@ -165,16 +166,24 @@ def method_delentropy():
 
     ### 1609.01117 page 10
 
-    # $\nabla f(n) \approx f(n) - f(n - 1)$
-    fx = greyimg[:, 2:] - greyimg[:, :-2]
-    fy = greyimg[2:, :] - greyimg[:-2, :]
+    # if set to True, use method explained in the article
+    # else, use alternative method
+    param_diffgrad = True
 
-    # fix shape
-    fx = fx[1:-1, :]
-    fy = fy[:, 1:-1]
+    if param_diffgrad:
+        # $\nabla f(n) \approx f(n) - f(n - 1)$
+        fx = greyimg[:, 2:] - greyimg[:, :-2]
+        fy = greyimg[2:, :] - greyimg[:-2, :]
+        # fix shape
+        fx = fx[1:-1, :]
+        fy = fy[:, 1:-1]
+    else:
+        grad = np.gradient(greyimg)
+        fx = grad[0].astype(int)
+        fy = grad[1].astype(int)
 
     # TODO: is this how fx and fy are combined? (it's for plotting and not used in computation anyways)
-    gradimg = fx + fy
+    grad = fx + fy
 
     # ensure $-255 \leq J \leq 255$
     jrng = np.max([np.max(np.abs(fx)), np.max(np.abs(fy))])
@@ -191,12 +200,13 @@ def method_delentropy():
     )
 
     deldensity = hist / np.sum(hist)
-    entimg = deldensity * np.ma.log2(deldensity)
+    entimg = deldensity * -np.ma.log2(deldensity)
     entimg /= 2  # 4.3 Papoulis generalized sampling halves the delentropy
-    entropy = -np.sum(entimg)
+    entropy = np.sum(entimg)
 
     # TODO: entropy is different from `sipp`, but similar
     log(f"entropy: {entropy}")
+    log(f"entropy ratio: {entropy / 8.0}")
 
     plt.subplot(2, 3, 1)
     if colourimg.shape == greyimg.shape and np.all(colourimg == greyimg):
@@ -214,19 +224,22 @@ def method_delentropy():
     plt.imshow(refimg, cmap=plt.cm.gray)
     plt.title("Reference")
 
-    # TODO: deldensity seems *mostly* zero, is this normal?
     plt.subplot(2, 3, 4)
     plt.imshow(deldensity, cmap=plt.cm.gray)
     plt.colorbar()
     plt.title(f"Deldensity")
 
     plt.subplot(2, 3, 5)
-    plt.imshow(np.abs(entimg))
+    plt.imshow(entimg)
     plt.colorbar()
     plt.title(f"Delentropy")
 
-    # TODO: the reference image seems to be bitwise inverted, I don't know why
-    gradimg = np.invert(gradimg)
+    # the reference image seems to be bitwise inverted, I don't know why.
+    # the entropy doesn't change when inverted, so both are okay in
+    # the previous computational steps.
+    param_invert = True
+
+    gradimg = np.invert(grad) if param_invert else grad
     plt.subplot(2, 3, 6)
     plt.imshow(gradimg, cmap=plt.cm.gray)
     plt.title(f"Gradient")
