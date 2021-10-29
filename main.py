@@ -13,6 +13,7 @@
 # 2d-gradient    | https://arxiv.org/abs/1609.01117
 #
 # 2d-delentropy  | https://arxiv.org/abs/1609.01117
+#                | https://github.com/Causticity/sipp
 # ---------------------------------
 
 
