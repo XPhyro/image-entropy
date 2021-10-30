@@ -19,14 +19,12 @@
 # -------------------------------------------------------------------
 
 
-from PIL import Image
 from copy import deepcopy as duplicate
 from matplotlib import pyplot as plt
 from operator import itemgetter
 from sys import argv
 import argparse
 import cv2 as cv
-import imageio
 import math
 import numpy as np
 
