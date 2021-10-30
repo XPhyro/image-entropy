@@ -5,18 +5,18 @@
 # For usage, see `./main.py --help`.
 #
 #
-# ---------------------------------
-# method         | resources
+# -------------------------------------------------------------------
+# method              | resources
 #
-# pseudo-spatial | TO BE ADDED
+# 2d-regional-shannon | TO BE ADDED
 #
-# 2d-gradient    | https://arxiv.org/abs/1609.01117
+# 2d-gradient         | https://arxiv.org/abs/1609.01117
 #
-# 2d-delentropy  | https://arxiv.org/abs/1609.01117
-#                | https://github.com/Causticity/sipp
+# 2d-delentropy       | https://arxiv.org/abs/1609.01117
+#                     | https://github.com/Causticity/sipp
 #
-# kapur          | https://doi.org/10.1080/09720502.2020.1731976
-# ---------------------------------
+# 1d-kapur            | https://doi.org/10.1080/09720502.2020.1731976
+# -------------------------------------------------------------------
 
 
 from PIL import Image
@@ -27,6 +27,7 @@ from sys import argv
 import argparse
 import cv2 as cv
 import imageio
+import math
 import numpy as np
 
 
@@ -48,7 +49,7 @@ def parseargs():
     parser.add_argument(
         "-m",
         "--method",
-        help="method to use. possible values: pseudo-spatial, 2d-delentropy, 2d-gradient, kapur (default: 2d-delentropy)",
+        help="method to use. possible values: 2d-delentropy, 2d-regional-shannon, 2d-gradient, 1d-kapur (default: 2d-delentropy)",
         type=argtypemethod,
         default="2d-delentropy",
     )
@@ -63,10 +64,10 @@ def parseargs():
 
 def argtypemethod(val):
     if (
-        val != "pseudo-spatial"
-        and val != "2d-delentropy"
+        val != "2d-delentropy"
+        and val != "2d-regional-shannon"
         and val != "2d-gradient"
-        and val != "kapur"
+        and val != "1d-kapur"
     ):
         raise argparse.ArgumentTypeError(f"{val} is not a valid method.")
     return val
@@ -83,26 +84,47 @@ def log(msg):
     print(f"{execname}: {msg}")
 
 
-def method_pseudo_spatial(path):
-    log("reading image")
+def plotall(colourimg, greyimg, plots):
+    nimg = len(plots) + 2
+    nx = nimg // 2
+    ny = math.ceil(nimg / (nimg // 2))
 
-    inputimg = Image.open(path)
-    greyimg = inputimg.convert("L")
-    inputimgarr = np.array(inputimg)
-    greyimgarr = np.array(greyimg)
+    plt.subplot(nx, ny, 1)
+    if colourimg.shape == greyimg.shape and np.all(colourimg == greyimg):
+        plt.imshow(colourimg, cmap=plt.cm.gray)
+    else:
+        plt.imshow(colourimg)
+    plt.title(f"Input Image")
 
-    imgarr = duplicate(greyimgarr)
-    imgshape = imgarr.shape
+    plt.subplot(nx, ny, 2)
+    plt.imshow(greyimg, cmap=plt.cm.gray)
+    plt.title(f"Greyscale Image")
+
+    for i, plot in enumerate(plots):
+        img, title, flags = plot
+        plt.subplot(nx, ny, i + 3)
+        if "forcecolour" in flags:
+            plt.imshow(img, cmap=plt.cm.jet)
+        else:
+            plt.imshow(img, cmap=plt.cm.gray)
+        if "hasbar" in flags:
+            plt.colorbar()
+        plt.title(title)
+
+
+def method_2d_regional_shannon(colourimg, greyimg):
+    log("processing image")
+
+    entimg = duplicate(greyimg)
+    imgshape = entimg.shape
 
     kernsize = args.kernel_size
     kernrad = round((kernsize - 1) / 2)
 
-    log("processing image")
-
     entropies = []
     for i in range(imgshape[0]):
         for j in range(imgshape[1]):
-            region = greyimgarr[
+            region = greyimg[
                 # ymax:ymin, xmax:xmin
                 np.max([0, i - kernrad]) : np.min([imgshape[0], i + kernrad]),
                 np.max([0, j - kernrad]) : np.min([imgshape[1], j + kernrad]),
@@ -113,32 +135,26 @@ def method_pseudo_spatial(path):
             entropy = np.sum([p * np.log2(1 / p) for p in probs])
 
             entropies.append(entropy)
-            imgarr[i, j] = entropy
-
-    log("preparing figure")
-
-    plt.subplot(1, 3, 1)
-    plt.imshow(inputimgarr)
-    plt.title(f"Input Image")
-
-    plt.subplot(1, 3, 2)
-    plt.imshow(greyimgarr, cmap=plt.cm.gray)
-    plt.title(f"Greyscale Image")
-
-    plt.subplot(1, 3, 3)
-    plt.imshow(imgarr, cmap=plt.cm.jet)
-    plt.colorbar()
-    plt.title(f"Entropy Map With {kernsize}x{kernsize} Kernel")
+            entimg[i, j] = entropy
 
     log(f"entropy = {np.average(entropies)} ± {np.std(entropies)}")
 
+    log("preparing figure")
 
-def method_gradient(path):
-    log("reading image")
+    plotall(
+        colourimg,
+        greyimg,
+        [
+            (
+                entimg,
+                "Entropy Map With {kernsize}x{kernsize} Kernel",
+                ["hasbar", "forcecolour"],
+            )
+        ],
+    )
 
-    inputimg = cv.imread(path)
-    greyimg = cv.cvtColor(inputimg, cv.COLOR_BGR2GRAY)
 
+def method_2d_gradient(colourimg, greyimg):
     log("processing image")
 
     param_realgrad = True
@@ -162,18 +178,7 @@ def method_gradient(path):
             borderType=cv.BORDER_CONSTANT,
         )
 
-    log("preparing figure")
-
-    plt.subplot(1, 3, 1)
-    plt.imshow(inputimg)
-    plt.title(f"Input Image")
-
-    plt.subplot(1, 3, 2)
-    plt.imshow(greyimg, cmap=plt.cm.gray)
-    plt.title(f"Greyscale Image")
-
-    plt.subplot(1, 3, 3)
-    entimg = (
+    gradimg = (
         np.bitwise_or(gradx, grady)
         if not param_realgrad
         else (
@@ -183,27 +188,14 @@ def method_gradient(path):
         )
     )
 
-    log(f"gradient = {np.average(entimg)} ± {np.std(entimg)}")
-    plt.imshow(entimg, cmap=plt.cm.gray)
-    plt.title(f"Gradient")
+    log(f"gradient = {np.average(gradimg)} ± {np.std(gradimg)}")
+
+    log("preparing figure")
+
+    plotall(colourimg, greyimg, [(gradimg, "Gradient", [])])
 
 
-def method_delentropy(path):
-    log("reading image")
-
-    # if set to True, use opencv
-    # else use imageio
-    param_usecv = True
-
-    if param_usecv:
-        inputimg = cv.imread(path)
-        colourimg = cv.cvtColor(inputimg, cv.COLOR_BGR2RGB).astype(int)  # for plotting
-        greyimg = cv.cvtColor(inputimg, cv.COLOR_BGR2GRAY).astype(int)
-    else:
-        inputimg = imageio.imread(path)
-        colourimg = inputimg
-        greyimg = imageio.imread(path, pilmode="L").astype(int)
-
+def method_2d_delentropy(colourimg, greyimg):
     log("processing image")
 
     ### 1609.01117 page 10
@@ -233,11 +225,10 @@ def method_delentropy(path):
 
     ### 1609.01117 page 16
 
-    nbins = 2 * jrng + 1
     hist, edgex, edgey = np.histogram2d(
         fx.flatten(),
         fy.flatten(),
-        bins=nbins,
+        bins=2 * jrng + 1,
         range=[[-jrng, jrng], [-jrng, jrng]],
     )
 
@@ -252,44 +243,25 @@ def method_delentropy(path):
 
     log("preparing figure")
 
-    plt.subplot(2, 3, 1)
-    if colourimg.shape == greyimg.shape and np.all(colourimg == greyimg):
-        plt.imshow(colourimg, cmap=plt.cm.gray)
-    else:
-        plt.imshow(colourimg)
-    plt.title(f"Image")
-
-    plt.subplot(2, 3, 2)
-    plt.imshow(greyimg, cmap=plt.cm.gray)
-    plt.title(f"Greyscale Image")
-
     # the reference image seems to be bitwise inverted, I don't know why.
     # the entropy doesn't change when inverted, so both are okay in
     # the previous computational steps.
     param_invert = True
 
     gradimg = np.invert(grad) if param_invert else grad
-    plt.subplot(2, 3, 3)
-    plt.imshow(gradimg, cmap=plt.cm.gray)
-    plt.title(f"Gradient")
 
-    plt.subplot(2, 3, 4)
-    plt.imshow(deldensity, cmap=plt.cm.gray)
-    plt.colorbar()
-    plt.title(f"Deldensity")
-
-    plt.subplot(2, 3, 5)
-    plt.imshow(entimg)
-    plt.colorbar()
-    plt.title(f"Delentropy")
+    plotall(
+        colourimg,
+        greyimg,
+        [
+            (gradimg, "Gradient", []),
+            (deldensity, "Deldensity", ["hasbar", "forcecolour"]),
+            (entimg, "Delentropy", ["hasbar", "forcecolour"]),
+        ],
+    )
 
 
-def method_kapur(path):
-    log("reading image")
-
-    inputimg = cv.imread(path)
-    greyimg = cv.cvtColor(inputimg, cv.COLOR_BGR2GRAY).astype(int)
-
+def method_1d_kapur(colourimg, greyimg):
     log("processing image")
 
     hist = np.histogram(greyimg, bins=256, range=(0, 256))[0]
@@ -318,20 +290,26 @@ def main():
     # don't hurt eyes
     plt.style.use("dark_background")
 
+    nfl = len(args.files) - 1
     for i, fl in enumerate(args.files):
         log(f"processing file: {fl}")
 
-        plt.figure(i + 1)
-        if args.method == "pseudo-spatial":
-            method_pseudo_spatial(fl)
-        elif args.method == "2d-delentropy":
-            method_delentropy(fl)
-        elif args.method == "2d-gradient":
-            method_gradient(fl)
-        elif args.method == "kapur":
-            method_kapur(fl)
+        inputimg = cv.imread(fl)
+        colourimg = cv.cvtColor(inputimg, cv.COLOR_BGR2RGB).astype(int)  # for plotting
+        greyimg = cv.cvtColor(inputimg, cv.COLOR_BGR2GRAY).astype(int)
 
-        print()
+        plt.figure(i + 1)
+        if args.method == "2d-delentropy":
+            method_2d_delentropy(colourimg, greyimg)
+        elif args.method == "2d-regional-shannon":
+            method_2d_regional_shannon(colourimg, greyimg)
+        elif args.method == "2d-gradient":
+            method_2d_gradient(colourimg, greyimg)
+        elif args.method == "1d-kapur":
+            method_1d_kapur(colourimg, greyimg)
+
+        if nfl != i:
+            print()
 
     plt.show()
 

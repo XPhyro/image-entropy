@@ -7,9 +7,6 @@
   - `2d-regional-delentropy`: Same as `2d-delentropy`, but using kernels.
 
 # Refactor / Rework / Optimisation
-- Optimise `pseudo-spatial`. Ideally, it would be consistent of only library code instead of Python loops.
-- Rework plotting not to duplicate code.
-- Instead of reading the image in the method, read in main not to duplicate code.
+- Optimise `2d-regional-shannon`. Ideally, it would be consistent of only library code instead of Python loops.
 
 # Other
-- Rename `pseudo-spatial` to `2d-regional-shannon`.
