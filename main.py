@@ -14,6 +14,8 @@
 #
 # 2d-delentropy  | https://arxiv.org/abs/1609.01117
 #                | https://github.com/Causticity/sipp
+#
+# kapur          | https://doi.org/10.1080/09720502.2020.1731976
 # ---------------------------------
 
 
