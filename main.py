@@ -20,6 +20,7 @@
 from PIL import Image
 from copy import deepcopy as duplicate
 from matplotlib import pyplot as plt
+from operator import itemgetter
 from sys import argv
 import argparse
 import cv2 as cv
@@ -45,7 +46,7 @@ def parseargs():
     parser.add_argument(
         "-m",
         "--method",
-        help="method to use. possible values: pseudo-spatial, 2d-delentropy, 2d-gradient (default: 2d-delentropy)",
+        help="method to use. possible values: pseudo-spatial, 2d-delentropy, 2d-gradient, kapur (default: 2d-delentropy)",
         type=argtypemethod,
         default="2d-delentropy",
     )
@@ -59,7 +60,12 @@ def parseargs():
 
 
 def argtypemethod(val):
-    if val != "pseudo-spatial" and val != "2d-delentropy" and val != "2d-gradient":
+    if (
+        val != "pseudo-spatial"
+        and val != "2d-delentropy"
+        and val != "2d-gradient"
+        and val != "kapur"
+    ):
         raise argparse.ArgumentTypeError(f"{val} is not a valid method.")
     return val
 
@@ -291,6 +297,34 @@ def method_delentropy(path):
     plt.title(f"Gradient")
 
 
+def method_kapur(path):
+    log("reading image")
+
+    inputimg = cv.imread(path)
+    greyimg = cv.cvtColor(inputimg, cv.COLOR_BGR2GRAY).astype(int)
+
+    log("processing image")
+
+    hist = np.histogram(greyimg, bins=256, range=(0, 256))[0]
+    cdf = hist.astype(float).cumsum()
+    ibin, fbin = itemgetter(0, -1)(np.nonzero(hist)[0])
+
+    entropymax, threshold = 0, 0
+    for i in range(ibin, fbin + 1):
+        histrng = hist[: i + 1] / cdf[i]
+        entropy = -np.sum(histrng * np.ma.log(histrng))
+
+        histrng = hist[i + 1 :]
+        histrng = histrng[histrng != 0] / (cdf[fbin] - cdf[i])
+        entropy -= np.sum(histrng * np.log(histrng))
+
+        if entropy > entropymax:
+            entropymax, threshold = entropy, i
+
+    log(f"entropy: {entropy}")
+    log(f"entropy ratio: {entropy / 8.0}")
+
+
 def main():
     parseargs()
 
@@ -307,6 +341,8 @@ def main():
             method_delentropy(fl)
         elif args.method == "2d-gradient":
             method_gradient(fl)
+        elif args.method == "kapur":
+            method_kapur(fl)
 
         print()
 
