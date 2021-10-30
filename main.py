@@ -43,6 +43,7 @@ def parseargs():
         type=argtypekernelsize,
         default=11,
     )
+
     defaultmethod = list(strtofunc.keys())[0]
     parser.add_argument(
         "-m",
@@ -51,6 +52,14 @@ def parseargs():
         type=argtypemethod,
         default=defaultmethod,
     )
+
+    parser.add_argument(
+        "-w",
+        "--white-background",
+        help=f"display plots on a white background.",
+        action="store_true",
+    )
+
     parser.add_argument(
         "files",
         help="paths to input image files",
@@ -292,8 +301,8 @@ def main():
 
     parseargs()
 
-    # don't hurt eyes
-    plt.style.use("dark_background")
+    if not args.white_background:
+        plt.style.use("dark_background")
 
     nfl = len(args.files) - 1
     for i, fl in enumerate(args.files):
