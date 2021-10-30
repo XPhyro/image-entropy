@@ -39,7 +39,7 @@ def parseargs():
     parser.add_argument(
         "-k",
         "--kernel-size",
-        help="kernel size. must be a positive odd integer. (default: 11, minimum: 3)",
+        help="kernel size to be used with regional methods. must be a positive odd integer except 1. (default: 11)",
         type=argtypekernelsize,
         default=11,
     )
