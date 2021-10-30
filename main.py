@@ -315,7 +315,7 @@ def method_kapur(path):
         entropy = -np.sum(histrng * np.ma.log(histrng))
 
         histrng = hist[i + 1 :]
-        histrng = histrng[histrng != 0] / (cdf[fbin] - cdf[i])
+        histrng = histrng[np.nonzero(histrng)] / (cdf[fbin] - cdf[i])
         entropy -= np.sum(histrng * np.log(histrng))
 
         if entropy > entropymax:
