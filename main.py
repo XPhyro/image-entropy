@@ -21,7 +21,6 @@
 
 from copy import deepcopy as duplicate
 from matplotlib import pyplot as plt
-from operator import itemgetter
 from sys import argv
 import argparse
 import cv2 as cv
@@ -260,7 +259,7 @@ def method_2d_delentropy(colourimg, greyimg):
 def method_1d_kapur(colourimg, greyimg):
     hist = np.histogram(greyimg, bins=256, range=(0, 256))[0]
     cdf = hist.astype(float).cumsum()
-    ibin, fbin = itemgetter(0, -1)(np.nonzero(hist)[0])
+    ibin, fbin = np.nonzero(hist)[0][[0, -1]]
 
     entropymax, threshold = 0, 0
     for i in range(ibin, fbin + 1):
