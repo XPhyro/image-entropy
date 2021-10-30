@@ -31,9 +31,6 @@ import math
 import numpy as np
 
 
-execname = argv[0]
-
-
 def parseargs():
     global args
 
@@ -46,12 +43,13 @@ def parseargs():
         type=argtypekernelsize,
         default=11,
     )
+    defaultmethod = list(strtofunc.keys())[0]
     parser.add_argument(
         "-m",
         "--method",
-        help="method to use. possible values: 2d-delentropy, 2d-regional-shannon, 2d-gradient, 1d-kapur (default: 2d-delentropy)",
+        help=f"method to use. possible values: {', '.join(strtofunc.keys())} (default: {defaultmethod})",
         type=argtypemethod,
-        default="2d-delentropy",
+        default=defaultmethod,
     )
     parser.add_argument(
         "files",
@@ -63,12 +61,7 @@ def parseargs():
 
 
 def argtypemethod(val):
-    if (
-        val != "2d-delentropy"
-        and val != "2d-regional-shannon"
-        and val != "2d-gradient"
-        and val != "1d-kapur"
-    ):
+    if val not in strtofunc.keys():
         raise argparse.ArgumentTypeError(f"{val} is not a valid method.")
     return val
 
@@ -141,7 +134,7 @@ def method_2d_regional_shannon(colourimg, greyimg):
 
     log("preparing figure")
 
-    plotall(
+    return (
         colourimg,
         greyimg,
         [
@@ -192,7 +185,7 @@ def method_2d_gradient(colourimg, greyimg):
 
     log("preparing figure")
 
-    plotall(colourimg, greyimg, [(gradimg, "Gradient", [])])
+    return (colourimg, greyimg, [(gradimg, "Gradient", [])])
 
 
 def method_2d_delentropy(colourimg, greyimg):
@@ -250,7 +243,7 @@ def method_2d_delentropy(colourimg, greyimg):
 
     gradimg = np.invert(grad) if param_invert else grad
 
-    plotall(
+    return (
         colourimg,
         greyimg,
         [
@@ -285,6 +278,18 @@ def method_1d_kapur(colourimg, greyimg):
 
 
 def main():
+    global execname
+    global strtofunc
+
+    execname = argv[0]
+
+    strtofunc = {
+        "2d-delentropy": method_2d_delentropy,
+        "2d-regional-shannon": method_2d_regional_shannon,
+        "2d-gradient": method_2d_regional_shannon,
+        "1d-kapur": method_1d_kapur,
+    }
+
     parseargs()
 
     # don't hurt eyes
@@ -299,14 +304,7 @@ def main():
         greyimg = cv.cvtColor(inputimg, cv.COLOR_BGR2GRAY).astype(int)
 
         plt.figure(i + 1)
-        if args.method == "2d-delentropy":
-            method_2d_delentropy(colourimg, greyimg)
-        elif args.method == "2d-regional-shannon":
-            method_2d_regional_shannon(colourimg, greyimg)
-        elif args.method == "2d-gradient":
-            method_2d_gradient(colourimg, greyimg)
-        elif args.method == "1d-kapur":
-            method_1d_kapur(colourimg, greyimg)
+        plotall(*strtofunc[args.method](colourimg, greyimg))
 
         if nfl != i:
             print()
