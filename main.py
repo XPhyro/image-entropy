@@ -232,10 +232,12 @@ def method_2d_delentropy(colourimg, greyimg):
         range=[[-jrng, jrng], [-jrng, jrng]],
     )
 
+    ### 1609.01117 page 22
+
     deldensity = hist / np.sum(hist)
-    entimg = deldensity * -np.ma.log2(deldensity)
-    entimg /= 2  # 4.3 Papoulis generalized sampling halves the delentropy
-    entropy = np.sum(entimg)
+    deldensity = deldensity * -np.ma.log2(deldensity)
+    entropy = np.sum(deldensity)
+    entropy /= 2  # 4.3 Papoulis generalized sampling halves the delentropy
 
     # TODO: entropy is different from `sipp` and the article, but very similar
     log(f"entropy: {entropy}")
@@ -256,7 +258,6 @@ def method_2d_delentropy(colourimg, greyimg):
         [
             (gradimg, "Gradient", []),
             (deldensity, "Deldensity", ["hasbar", "forcecolour"]),
-            (entimg, "Delentropy", ["hasbar", "forcecolour"]),
         ],
     )
 
