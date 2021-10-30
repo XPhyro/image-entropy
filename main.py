@@ -85,6 +85,8 @@ def log(msg):
 
 
 def plotall(colourimg, greyimg, plots):
+    log("preparing figure")
+
     nimg = len(plots) + 2
     nx = nimg // 2
     ny = math.ceil(nimg / (nimg // 2))
@@ -113,8 +115,6 @@ def plotall(colourimg, greyimg, plots):
 
 
 def method_2d_regional_shannon(colourimg, greyimg):
-    log("processing image")
-
     entimg = duplicate(greyimg)
     imgshape = entimg.shape
 
@@ -139,8 +139,6 @@ def method_2d_regional_shannon(colourimg, greyimg):
 
     log(f"entropy = {np.average(entropies)} ± {np.std(entropies)}")
 
-    log("preparing figure")
-
     return (
         colourimg,
         greyimg,
@@ -155,8 +153,6 @@ def method_2d_regional_shannon(colourimg, greyimg):
 
 
 def method_2d_gradient(colourimg, greyimg):
-    log("processing image")
-
     param_realgrad = True
     param_concave = True
 
@@ -190,14 +186,10 @@ def method_2d_gradient(colourimg, greyimg):
 
     log(f"gradient = {np.average(gradimg)} ± {np.std(gradimg)}")
 
-    log("preparing figure")
-
     return (colourimg, greyimg, [(gradimg, "Gradient", [])])
 
 
 def method_2d_delentropy(colourimg, greyimg):
-    log("processing image")
-
     ### 1609.01117 page 10
 
     # if set to True, use method explained in the article
@@ -243,8 +235,6 @@ def method_2d_delentropy(colourimg, greyimg):
     log(f"entropy: {entropy}")
     log(f"entropy ratio: {entropy / 8.0}")
 
-    log("preparing figure")
-
     # the reference image seems to be bitwise inverted, I don't know why.
     # the entropy doesn't change when inverted, so both are okay in
     # the previous computational steps.
@@ -263,8 +253,6 @@ def method_2d_delentropy(colourimg, greyimg):
 
 
 def method_1d_kapur(colourimg, greyimg):
-    log("processing image")
-
     hist = np.histogram(greyimg, bins=256, range=(0, 256))[0]
     cdf = hist.astype(float).cumsum()
     ibin, fbin = itemgetter(0, -1)(np.nonzero(hist)[0])
@@ -283,6 +271,8 @@ def method_1d_kapur(colourimg, greyimg):
 
     log(f"entropy: {entropy}")
     log(f"entropy ratio: {entropy / 8.0}")
+
+    return None
 
 
 def main():
@@ -312,6 +302,7 @@ def main():
         greyimg = cv.cvtColor(inputimg, cv.COLOR_BGR2GRAY).astype(int)
 
         plt.figure(i + 1)
+        log("processing image")
         plotall(*strtofunc[args.method](colourimg, greyimg))
 
         if nfl != i:
