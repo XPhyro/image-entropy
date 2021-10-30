@@ -258,22 +258,23 @@ def method_2d_delentropy(colourimg, greyimg):
 
 def method_1d_kapur(colourimg, greyimg):
     hist = np.histogram(greyimg, bins=256, range=(0, 256))[0]
-    cdf = hist.astype(float).cumsum()
-    ibin, fbin = np.nonzero(hist)[0][[0, -1]]
+    cdf = hist.astype(float).cumsum()  # cumulative distribution function
+    binrng = np.nonzero(hist)[0][[0, -1]]
 
     entropymax, threshold = 0, 0
-    for i in range(ibin, fbin + 1):
+    for i in range(binrng[0], binrng[1] + 1):
         histrng = hist[: i + 1] / cdf[i]
         entropy = -np.sum(histrng * np.ma.log(histrng))
 
         histrng = hist[i + 1 :]
-        histrng = histrng[np.nonzero(histrng)] / (cdf[fbin] - cdf[i])
+        histrng = histrng[np.nonzero(histrng)] / (cdf[binrng[1]] - cdf[i])
         entropy -= np.sum(histrng * np.log(histrng))
 
         if entropy > entropymax:
             entropymax, threshold = entropy, i
 
     log(f"entropy: {entropy}")
+    log(f"threshold: {threshold}")
     log(f"entropy ratio: {entropy / 8.0}")
 
     return (None, None, None)
