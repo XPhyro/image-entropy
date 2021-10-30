@@ -85,6 +85,9 @@ def log(msg):
 
 
 def plotall(colourimg, greyimg, plots):
+    if colourimg is None or greyimg is None or plots is None:
+        return False
+
     log("preparing figure")
 
     nimg = len(plots) + 2
@@ -112,6 +115,8 @@ def plotall(colourimg, greyimg, plots):
         if "hasbar" in flags:
             plt.colorbar()
         plt.title(title)
+
+    return True
 
 
 def method_2d_regional_shannon(colourimg, greyimg):
@@ -272,7 +277,7 @@ def method_1d_kapur(colourimg, greyimg):
     log(f"entropy: {entropy}")
     log(f"entropy ratio: {entropy / 8.0}")
 
-    return None
+    return (None, None, None)
 
 
 def main():
@@ -293,6 +298,7 @@ def main():
     if not args.white_background:
         plt.style.use("dark_background")
 
+    hasfigure = False
     nfl = len(args.files) - 1
     for i, fl in enumerate(args.files):
         log(f"processing file: {fl}")
@@ -303,12 +309,14 @@ def main():
 
         plt.figure(i + 1)
         log("processing image")
-        plotall(*strtofunc[args.method](colourimg, greyimg))
+        hasfigure = hasfigure or plotall(*strtofunc[args.method](colourimg, greyimg))
 
         if nfl != i:
             print()
 
-    plt.show()
+    if hasfigure:
+        log("no figure to show")
+        plt.show()
 
 
 if __name__ == "__main__":
