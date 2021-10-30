@@ -115,23 +115,18 @@ def method_pseudo_spatial(path):
 
     log("preparing figure")
 
-    plt.subplot(1, 4, 1)
+    plt.subplot(1, 3, 1)
     plt.imshow(inputimgarr)
     plt.title(f"Input Image")
 
-    plt.subplot(1, 4, 2)
+    plt.subplot(1, 3, 2)
     plt.imshow(greyimgarr, cmap=plt.cm.gray)
     plt.title(f"Greyscale Image")
 
-    plt.subplot(1, 4, 3)
+    plt.subplot(1, 3, 3)
     plt.imshow(imgarr, cmap=plt.cm.jet)
     plt.colorbar()
     plt.title(f"Entropy Map With {kernsize}x{kernsize} Kernel")
-
-    refimg = cv.imread("ref/barbara.png")
-    plt.subplot(1, 4, 4)
-    plt.imshow(refimg, cmap=plt.cm.gray)
-    plt.title("Reference Map")
 
     log(f"entropy = {np.average(entropies)} ± {np.std(entropies)}")
 
@@ -167,15 +162,15 @@ def method_gradient(path):
 
     log("preparing figure")
 
-    plt.subplot(1, 4, 1)
+    plt.subplot(1, 3, 1)
     plt.imshow(inputimg)
     plt.title(f"Input Image")
 
-    plt.subplot(1, 4, 2)
+    plt.subplot(1, 3, 2)
     plt.imshow(greyimg, cmap=plt.cm.gray)
     plt.title(f"Greyscale Image")
 
-    plt.subplot(1, 4, 3)
+    plt.subplot(1, 3, 3)
     entimg = (
         np.bitwise_or(gradx, grady)
         if not param_realgrad
@@ -189,11 +184,6 @@ def method_gradient(path):
     log(f"gradient = {np.average(entimg)} ± {np.std(entimg)}")
     plt.imshow(entimg, cmap=plt.cm.gray)
     plt.title(f"Gradient")
-
-    refimg = cv.imread("ref/barbara.png")
-    plt.subplot(1, 4, 4)
-    plt.imshow(refimg, cmap=plt.cm.gray)
-    plt.title("Reference Map")
 
 
 def method_delentropy(path):
@@ -271,10 +261,15 @@ def method_delentropy(path):
     plt.imshow(greyimg, cmap=plt.cm.gray)
     plt.title(f"Greyscale Image")
 
-    refimg = cv.imread("ref/barbara.png")
+    # the reference image seems to be bitwise inverted, I don't know why.
+    # the entropy doesn't change when inverted, so both are okay in
+    # the previous computational steps.
+    param_invert = True
+
+    gradimg = np.invert(grad) if param_invert else grad
     plt.subplot(2, 3, 3)
-    plt.imshow(refimg, cmap=plt.cm.gray)
-    plt.title("Reference")
+    plt.imshow(gradimg, cmap=plt.cm.gray)
+    plt.title(f"Gradient")
 
     plt.subplot(2, 3, 4)
     plt.imshow(deldensity, cmap=plt.cm.gray)
@@ -285,16 +280,6 @@ def method_delentropy(path):
     plt.imshow(entimg)
     plt.colorbar()
     plt.title(f"Delentropy")
-
-    # the reference image seems to be bitwise inverted, I don't know why.
-    # the entropy doesn't change when inverted, so both are okay in
-    # the previous computational steps.
-    param_invert = True
-
-    gradimg = np.invert(grad) if param_invert else grad
-    plt.subplot(2, 3, 6)
-    plt.imshow(gradimg, cmap=plt.cm.gray)
-    plt.title(f"Gradient")
 
 
 def method_kapur(path):
