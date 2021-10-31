@@ -154,9 +154,7 @@ def main():
         colourimg = cv.cvtColor(inputimg, cv.COLOR_BGR2RGB)  # for plotting
         greyimg = cv.cvtColor(inputimg, cv.COLOR_BGR2GRAY)
 
-        if greyimg.dtype != np.uint8:
-            log("image channel depth must be 8 bits")
-            exit(1)
+        assert greyimg.dtype == np.uint8, "image channel depth must be 8 bits"
 
         # prevent over/underflows during computation
         colourimg = colourimg.astype(np.int64)
