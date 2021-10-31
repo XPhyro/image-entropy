@@ -280,7 +280,7 @@ def method_2d_delentropy(colourimg, greyimg):
     )
 
 
-def method_2d_scikit(colourimg, greyimg):
+def method_2d_regional_scikit(colourimg, greyimg):
     # From scikit docs:
     # The entropy is computed using base 2 logarithm i.e. the filter returns the minimum number of bits needed to encode the local gray level distribution.
     entimg = skentropy(greyimg, skdisk(args.radius))
@@ -339,7 +339,7 @@ def main():
         "2d-delentropy": method_2d_delentropy,
         "2d-regional-shannon": method_2d_regional_shannon,
         "2d-gradient": method_2d_regional_shannon,
-        "2d-scikit": method_2d_scikit,
+        "2d-regional-scikit": method_2d_regional_scikit,
         "1d-shannon": method_1d_shannon,
         "1d-kapur": method_1d_kapur,
     }
