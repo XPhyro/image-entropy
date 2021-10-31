@@ -48,6 +48,14 @@ def parseargs():
         default=11,
     )
 
+    parser.add_argument(
+        "-r",
+        "--radius",
+        help="disk radius to be used with regional methods. must be a positive integer except greater than 2. (default: 10)",
+        type=argtyperadius,
+        default=10,
+    )
+
     defaultmethod = list(strtofunc.keys())[0]
     parser.add_argument(
         "-m",
@@ -83,6 +91,13 @@ def argtypekernelsize(val):
     ival = int(val)
     if ival <= 1 or ival % 2 != 1:
         raise argparse.ArgumentTypeError(f"{ival} is not a valid kernel size.")
+    return ival
+
+
+def argtyperadius(val):
+    ival = int(val)
+    if ival <= 2:
+        raise argparse.ArgumentTypeError(f"{ival} is not a radius.")
     return ival
 
 
@@ -268,7 +283,7 @@ def method_2d_delentropy(colourimg, greyimg):
 def method_2d_scikit(colourimg, greyimg):
     # From scikit docs:
     # The entropy is computed using base 2 logarithm i.e. the filter returns the minimum number of bits needed to encode the local gray level distribution.
-    entimg = skentropy(greyimg, skdisk(10))
+    entimg = skentropy(greyimg, skdisk(args.radius))
     entropy = entimg.mean()
 
     log(f"entropy: {entropy}")
