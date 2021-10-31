@@ -53,7 +53,7 @@ def parseargs():
     parser.add_argument(
         "-r",
         "--radius",
-        help="disk radius to be used with regional methods. must be a positive integer except greater than 2. (default: 10)",
+        help="disk radius to be used with regional methods. must be an integer greater than 2. (default: 10)",
         type=argtyperadius,
         default=10,
     )
