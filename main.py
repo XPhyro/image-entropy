@@ -258,6 +258,17 @@ def method_2d_delentropy(colourimg, greyimg):
     )
 
 
+def method_1d_shannon(colourimg, greyimg):
+    signal = greyimg / greyimg.sum()
+    entimg = signal * -np.ma.log2(signal)
+    entropy = entimg.sum()
+
+    log(f"entropy: {entropy}")
+    log(f"entropy ratio: {entropy / 8.0}")
+
+    return (colourimg, greyimg, [(entimg, "Shannon Entropy", [])])
+
+
 def method_1d_kapur(colourimg, greyimg):
     hist = np.histogram(greyimg, bins=256, range=(0, 256))[0]
     cdf = hist.astype(float).cumsum()  # cumulative distribution function
@@ -294,6 +305,7 @@ def main():
         "2d-delentropy": method_2d_delentropy,
         "2d-regional-shannon": method_2d_regional_shannon,
         "2d-gradient": method_2d_regional_shannon,
+        "1d-shannon": method_1d_shannon,
         "1d-kapur": method_1d_kapur,
     }
 
