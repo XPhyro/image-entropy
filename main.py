@@ -156,6 +156,10 @@ def main():
             log("image must be one of 8-bit greyscale or 24/32-bit colour")
             exit(1)
 
+        # prevent over/underflows during computation
+        colourimg = colourimg.astype(np.int64)
+        greyimg = greyimg.astype(np.int64)
+
         log("processing image")
 
         plt.figure(i + 1)
