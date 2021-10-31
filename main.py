@@ -309,7 +309,7 @@ def method_1d_shannon(colourimg, greyimg):
 
 def method_1d_scipy(colourimg, greyimg):
     signal = greyimg.flatten() / greyimg.sum()
-    entropy = spentropy(signal)
+    entropy = spentropy(signal, base=8)
 
     log(f"entropy: {entropy}")
     log(f"entropy ratio: {entropy / 8.0}")
