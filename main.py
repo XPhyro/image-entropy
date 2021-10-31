@@ -155,7 +155,7 @@ def main():
         greyimg = cv.cvtColor(inputimg, cv.COLOR_BGR2GRAY)
 
         if greyimg.dtype != np.uint8:
-            log("image must be one of 8-bit greyscale or 24/32-bit colour")
+            log("image channel depth must be 8 bits")
             exit(1)
 
         # prevent over/underflows during computation
