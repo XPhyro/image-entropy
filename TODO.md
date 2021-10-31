@@ -11,3 +11,4 @@
 - Optimise `2d-regional-shannon`. Ideally, it would be consistent of only library code instead of Python loops.
 
 # Other
+- Write a function that *regional*ises methods.
