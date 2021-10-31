@@ -285,7 +285,8 @@ def method_2d_delentropy(colourimg, greyimg):
 
 def method_2d_regional_scikit(colourimg, greyimg):
     # From scikit docs:
-    # The entropy is computed using base 2 logarithm i.e. the filter returns the minimum number of bits needed to encode the local gray level distribution.
+    # The entropy is computed using base 2 logarithm i.e. the filter returns
+    # the minimum number of bits needed to encode the local gray level distribution.
     entimg = skentropy(greyimg, skdisk(args.radius))
     entropy = entimg.mean()
 
