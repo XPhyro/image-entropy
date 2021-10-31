@@ -380,7 +380,7 @@ def main():
         plt.figure(i + 1)
         hasfigure = hasfigure or plotall(*strtofunc[args.method](colourimg, greyimg))
 
-        if nfl != i:
+        if i != nfl:
             print()
 
     if hasfigure:
