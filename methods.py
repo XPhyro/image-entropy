@@ -82,7 +82,7 @@ def delentropy2d(colourimg, greyimg):
 
     # ensure $-255 \leq J \leq 255$
     jrng = np.max([np.max(np.abs(fx)), np.max(np.abs(fy))])
-    assert jrng <= 255
+    assert jrng <= 255, "J must be in range [-255, 255]"
 
     ### 1609.01117 page 16
 
