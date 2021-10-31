@@ -315,8 +315,9 @@ def main():
             print()
 
     if hasfigure:
-        log("no figure to show")
         plt.show()
+    else:
+        log("no figure to show")
 
 
 if __name__ == "__main__":
