@@ -134,6 +134,8 @@ def plotall(colourimg, greyimg, plots):
             plt.colorbar()
         plt.title(title)
 
+    plt.tight_layout()
+
     return True
 
 
