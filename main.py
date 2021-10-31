@@ -5,22 +5,29 @@
 # For usage, see `./main.py --help`.
 #
 #
-#######################################################################
-# method              | resources                                     #
-# =================================================================== #
-# 2d-regional-shannon | TO BE ADDED                                   #
-# ------------------------------------------------------------------- #
-# 2d-gradient         | https://arxiv.org/abs/1609.01117              #
-# ------------------------------------------------------------------- #
-# 2d-delentropy       | https://arxiv.org/abs/1609.01117              #
-#                     | https://github.com/Causticity/sipp            #
-# ------------------------------------------------------------------- #
-# 1d-kapur            | https://doi.org/10.1080/09720502.2020.1731976 #
-#######################################################################
+###################################################################################################
+# method              | resources                                                                 #
+# =============================================================================================== #
+# 2d-regional-shannon | TO BE ADDED                                                               #
+# ----------------------------------------------------------------------------------------------- #
+# 2d-gradient         | https://arxiv.org/abs/1609.01117                                          #
+# ----------------------------------------------------------------------------------------------- #
+# 2d-delentropy       | https://arxiv.org/abs/1609.01117                                          #
+#                     | https://github.com/Causticity/sipp                                        #
+# ----------------------------------------------------------------------------------------------- #
+# 2d-scikit           | https://scikit-image.org/docs/dev/auto_examples/filters/plot_entropy.html #
+#                     | https://scikit-image.org/docs/dev/api/skimage.filters.rank.html           #
+# ----------------------------------------------------------------------------------------------- #
+# 1d-shannon          |                                                                           #
+# ----------------------------------------------------------------------------------------------- #
+# 1d-kapur            | https://doi.org/10.1080/09720502.2020.1731976                             #
+###################################################################################################
 
 
 from copy import deepcopy as duplicate
 from matplotlib import pyplot as plt
+from skimage.filters.rank import entropy as skentropy
+from skimage.morphology import disk as skdisk
 from sys import argv
 import argparse
 import cv2 as cv
@@ -258,6 +265,18 @@ def method_2d_delentropy(colourimg, greyimg):
     )
 
 
+def method_2d_scikit(colourimg, greyimg):
+    # From scikit docs:
+    # The entropy is computed using base 2 logarithm i.e. the filter returns the minimum number of bits needed to encode the local gray level distribution.
+    entimg = skentropy(greyimg, skdisk(10))
+    entropy = entimg.mean()
+
+    log(f"entropy: {entropy}")
+    log(f"entropy ratio: {entropy / 8.0}")
+
+    return (colourimg, greyimg, [(entimg, "Scikit Entropy", ["hasbar"])])
+
+
 def method_1d_shannon(colourimg, greyimg):
     signal = greyimg / greyimg.sum()
     entimg = signal * -np.ma.log2(signal)
@@ -305,6 +324,7 @@ def main():
         "2d-delentropy": method_2d_delentropy,
         "2d-regional-shannon": method_2d_regional_shannon,
         "2d-gradient": method_2d_regional_shannon,
+        "2d-scikit": method_2d_scikit,
         "1d-shannon": method_1d_shannon,
         "1d-kapur": method_1d_kapur,
     }
@@ -320,11 +340,15 @@ def main():
         log(f"processing file: {fl}")
 
         inputimg = cv.imread(fl)
-        colourimg = cv.cvtColor(inputimg, cv.COLOR_BGR2RGB).astype(int)  # for plotting
-        greyimg = cv.cvtColor(inputimg, cv.COLOR_BGR2GRAY).astype(int)
+        colourimg = cv.cvtColor(inputimg, cv.COLOR_BGR2RGB)  # for plotting
+        greyimg = cv.cvtColor(inputimg, cv.COLOR_BGR2GRAY)
 
-        plt.figure(i + 1)
+        if greyimg.dtype != np.uint8:
+            log("image must be one of 8-bit greyscale or 24/32-bit colour")
+            exit(1)
+
         log("processing image")
+        plt.figure(i + 1)
         hasfigure = hasfigure or plotall(*strtofunc[args.method](colourimg, greyimg))
 
         if nfl != i:
