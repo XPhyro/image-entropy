@@ -212,7 +212,9 @@ def method_2d_delentropy(colourimg, greyimg):
         fx = grad[0].astype(int)
         fy = grad[1].astype(int)
 
-    # TODO: is this how fx and fy are combined? (it's for plotting and not used in computation anyways)
+    # TODO: is this how fx and fy are combined?
+    #       it's for plotting and not used in computation anyways,
+    #       and it matches the image in the article.
     grad = fx + fy
 
     # ensure $-255 \leq J \leq 255$
