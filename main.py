@@ -8,7 +8,7 @@
 #######################################################################################################
 # method              | resources                                                                     #
 # =================================================================================================== #
-# 2d-regional-shannon | TO BE ADDED                                                                   #
+# 2d-regional-shannon |                                                                               #
 # --------------------------------------------------------------------------------------------------- #
 # 2d-gradient         | https://arxiv.org/abs/1609.01117                                              #
 # --------------------------------------------------------------------------------------------------- #
@@ -221,7 +221,7 @@ def method_2d_gradient(colourimg, greyimg):
 def method_2d_delentropy(colourimg, greyimg):
     ### 1609.01117 page 10
 
-    # if set to True, use method explained in the article
+    # if set to True, use method explained in the paper
     # else, use alternative method
     param_diffgrad = True
 
@@ -239,7 +239,7 @@ def method_2d_delentropy(colourimg, greyimg):
 
     # TODO: is this how fx and fy are combined?
     #       it's for plotting and not used in computation anyways,
-    #       and it matches the image in the article.
+    #       and it matches the image in the paper.
     grad = fx + fy
 
     # ensure $-255 \leq J \leq 255$
@@ -262,7 +262,7 @@ def method_2d_delentropy(colourimg, greyimg):
     entropy = np.sum(deldensity)
     entropy /= 2  # 4.3 Papoulis generalized sampling halves the delentropy
 
-    # TODO: entropy is different from `sipp` and the article, but very similar
+    # TODO: entropy is different from `sipp` and the paper, but very similar
     log(f"entropy: {entropy}")
     log(f"entropy ratio: {entropy / 8.0}")
 
