@@ -26,6 +26,7 @@
 
 from copy import deepcopy as duplicate
 from matplotlib import pyplot as plt
+from scipy.stats import entropy as spentropy
 from skimage.filters.rank import entropy as skentropy
 from skimage.morphology import disk as skdisk
 from sys import argv
@@ -303,6 +304,16 @@ def method_1d_shannon(colourimg, greyimg):
     return (colourimg, greyimg, [(entimg, "Shannon Entropy", [])])
 
 
+def method_1d_scipy(colourimg, greyimg):
+    signal = greyimg.flatten() / greyimg.sum()
+    entropy = spentropy(signal)
+
+    log(f"entropy: {entropy}")
+    log(f"entropy ratio: {entropy / 8.0}")
+
+    return (None, None, None)
+
+
 def method_1d_kapur(colourimg, greyimg):
     hist = np.histogram(greyimg, bins=256, range=(0, 256))[0]
     cdf = hist.astype(float).cumsum()  # cumulative distribution function
@@ -341,6 +352,7 @@ def main():
         "2d-gradient": method_2d_regional_shannon,
         "2d-regional-scikit": method_2d_regional_scikit,
         "1d-shannon": method_1d_shannon,
+        "1d-scipy": method_1d_scipy,
         "1d-kapur": method_1d_kapur,
     }
 
