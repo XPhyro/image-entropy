@@ -277,7 +277,9 @@ def method_1d_kapur(colourimg, greyimg):
     log(f"threshold: {threshold}")
     log(f"entropy ratio: {entropy / 8.0}")
 
-    return (None, None, None)
+    entimg = np.where(greyimg < threshold, greyimg, 0)
+
+    return (colourimg, greyimg, [(entimg, "Kapur Threshold", [])])
 
 
 def main():
