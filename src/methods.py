@@ -8,7 +8,7 @@
 # 2d-delentropy       | https://arxiv.org/abs/1609.01117                                              #
 #                     | https://github.com/Causticity/sipp                                            #
 # --------------------------------------------------------------------------------------------------- #
-# 2d-scikit           | https://scikit-image.org/docs/dev/auto_examples/filters/plot_entropy.html     #
+# 2d-regional-scikit  | https://scikit-image.org/docs/dev/auto_examples/filters/plot_entropy.html     #
 #                     | https://scikit-image.org/docs/dev/api/skimage.filters.rank.html               #
 # --------------------------------------------------------------------------------------------------- #
 # 1d-shannon          |                                                                               #
