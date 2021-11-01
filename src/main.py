@@ -141,7 +141,7 @@ def main():
         log("processing image")
 
         plt.figure(i + 1)
-        hasfigure |= plotall(*methods.strtofunc[args.method](colourimg, greyimg))
+        hasfigure |= plotall(*methods.strtofunc[args.method](args, colourimg, greyimg))
 
         if i != nfl:
             print()

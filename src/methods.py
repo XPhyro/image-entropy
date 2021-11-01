@@ -30,7 +30,7 @@ import numpy as np
 from log import log
 
 
-def kapur1d(colourimg, greyimg):
+def kapur1d(args, colourimg, greyimg):
     hist = np.histogram(greyimg, bins=256, range=(0, 256))[0]
     cdf = hist.astype(float).cumsum()  # cumulative distribution function
     binrng = np.nonzero(hist)[0][[0, -1]]
@@ -56,7 +56,7 @@ def kapur1d(colourimg, greyimg):
     return (colourimg, greyimg, [(entimg, "Kapur Threshold", [])])
 
 
-def scipy1d(colourimg, greyimg):
+def scipy1d(args, colourimg, greyimg):
     signal = greyimg.flatten() / greyimg.sum()
     entropy = spentropy(signal, base=8)
 
@@ -66,7 +66,7 @@ def scipy1d(colourimg, greyimg):
     return (None, None, None)
 
 
-def shannon1d(colourimg, greyimg):
+def shannon1d(args, colourimg, greyimg):
     signal = greyimg / greyimg.sum()
     entimg = signal * -np.ma.log2(signal)
     entropy = entimg.sum()
@@ -77,7 +77,7 @@ def shannon1d(colourimg, greyimg):
     return (colourimg, greyimg, [(entimg, "Shannon Entropy", [])])
 
 
-def delentropy2d(colourimg, greyimg):
+def delentropy2d(args, colourimg, greyimg):
     ### 1609.01117 page 10
 
     # if set to True, use method explained in the paper
@@ -142,7 +142,7 @@ def delentropy2d(colourimg, greyimg):
     )
 
 
-def gradient2d(colourimg, greyimg):
+def gradient2d(args, colourimg, greyimg):
     param_realgrad = True
     param_concave = True
 
@@ -179,7 +179,7 @@ def gradient2d(colourimg, greyimg):
     return (colourimg, greyimg, [(gradimg, "Gradient", [])])
 
 
-def scikit2dr(colourimg, greyimg):
+def scikit2dr(args, colourimg, greyimg):
     # From scikit docs:
     # The entropy is computed using base 2 logarithm i.e. the filter returns
     # the minimum number of bits needed to encode the local gray level distribution.
@@ -192,7 +192,7 @@ def scikit2dr(colourimg, greyimg):
     return (colourimg, greyimg, [(entimg, "Scikit Entropy", ["hasbar"])])
 
 
-def shannon2dr(colourimg, greyimg):
+def shannon2dr(args, colourimg, greyimg):
     entimg = duplicate(greyimg)
     imgshape = entimg.shape
 
