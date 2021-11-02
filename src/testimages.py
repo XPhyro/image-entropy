@@ -60,11 +60,13 @@ def black(w=1024, h=1024):
 
 
 strtofunc = {
-    "horizontal-linear-gradient": gradlinearh,
-    "vertical-linear-gradient": gradlinearv,
-    "conic-gradient": gradconic,
-    "uniform-random": randunif,
+    "gradlinearh": gradlinearh,
+    "gradlinearv": gradlinearv,
+    "gradconic": gradconic,
+    "randunif": randunif,
     "pattern": pattern,
+    "coscos": coscos,
+    "cos2cos2": cos2cos2,
     "face": face,
     "ascent": ascent,
     "white": white,
