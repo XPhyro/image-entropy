@@ -85,21 +85,66 @@ def shannon1d(args, colourimg, greyimg):
 def delentropy2d(args, colourimg, greyimg):
     ### 1609.01117 page 10
 
-    # if set to True, use method explained in the paper
-    # else, use alternative method
-    param_diffgrad = True
+    # $\nabla f(n) \approx f(n) - f(n - 1)$
+    fx = greyimg[:, 2:] - greyimg[:, :-2]
+    fy = greyimg[2:, :] - greyimg[:-2, :]
+    # fix shape
+    fx = fx[1:-1, :]
+    fy = fy[:, 1:-1]
 
-    if param_diffgrad:
-        # $\nabla f(n) \approx f(n) - f(n - 1)$
-        fx = greyimg[:, 2:] - greyimg[:, :-2]
-        fy = greyimg[2:, :] - greyimg[:-2, :]
-        # fix shape
-        fx = fx[1:-1, :]
-        fy = fy[:, 1:-1]
-    else:
-        grad = np.gradient(greyimg)
-        fx = grad[0].astype(int)
-        fy = grad[1].astype(int)
+    # TODO: is this how fx and fy are combined?
+    #       it's for plotting and not used in computation anyways,
+    #       and it matches the image in the paper.
+    grad = fx + fy
+
+    # ensure $-255 \leq J \leq 255$
+    jrng = np.max([np.max(np.abs(fx)), np.max(np.abs(fy))])
+    assert jrng <= 255, "J must be in range [-255, 255]"
+
+    ### 1609.01117 page 16
+
+    hist, edgex, edgey = np.histogram2d(
+        fx.flatten(),
+        fy.flatten(),
+        bins=2 * jrng + 1,
+        range=[[-jrng, jrng], [-jrng, jrng]],
+    )
+
+    ### 1609.01117 page 22
+
+    deldensity = hist / np.sum(hist)
+    deldensity = deldensity * -np.ma.log2(deldensity)
+    entropy = np.sum(deldensity)
+    entropy /= 2  # 4.3 Papoulis generalized sampling halves the delentropy
+
+    # TODO: entropy is different from `sipp` and the paper, but very similar
+    log(f"entropy: {entropy}")
+    log(f"entropy ratio: {entropy / 8.0}")
+
+    # the reference image seems to be bitwise inverted, I don't know why.
+    # the entropy doesn't change when inverted, so both are okay in
+    # the previous computational steps.
+    param_invert = True
+
+    gradimg = np.invert(grad) if param_invert else grad
+
+    return (
+        entropy,
+        colourimg,
+        greyimg,
+        [
+            (gradimg, "Gradient", []),
+            (deldensity, "Deldensity", ["hasbar", "forcecolour"]),
+        ],
+    )
+
+
+def delentropy2dv(args, colourimg, greyimg):
+    ### 1609.01117 page 10
+
+    grad = np.gradient(greyimg)
+    fx = grad[0].astype(int)
+    fy = grad[1].astype(int)
 
     # TODO: is this how fx and fy are combined?
     #       it's for plotting and not used in computation anyways,
@@ -245,6 +290,7 @@ strtofunc = {
     "1d-scipy": scipy1d,
     "1d-shannon": shannon1d,
     "2d-delentropy": delentropy2d,
+    "2d-delentropy-variation": delentropy2dv,
     "2d-gradient": gradient2d,
     "2d-regional-scikit": scikit2dr,
     "2d-regional-shannon": shannon2dr,
