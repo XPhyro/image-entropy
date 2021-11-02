@@ -43,19 +43,19 @@ def parseargs():
     )
 
     parser.add_argument(
-        "-r",
-        "--radius",
-        help="disk radius to be used with regional methods. must be an integer greater than 2. (default: 10)",
-        type=argtyperadius,
-        default=10,
-    )
-
-    parser.add_argument(
         "-m",
         "--method",
         help=f"method to use. possible values: {', '.join(methods.strtofunc.keys())} (default: {methods.default})",
         type=argtypemethod,
         default=methods.default,
+    )
+
+    parser.add_argument(
+        "-r",
+        "--radius",
+        help="disk radius to be used with regional methods. must be an integer greater than 2. (default: 10)",
+        type=argtyperadius,
+        default=10,
     )
 
     parser.add_argument(
