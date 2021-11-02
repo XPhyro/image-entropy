@@ -41,6 +41,14 @@ def ascent(w=1024, h=1024):
     return spascent().astype(np.uint8)
 
 
+def white(w=1024, h=1024):
+    return np.ones((w, h)).astype(np.uint8)
+
+
+def black(w=1024, h=1024):
+    return np.zeros((w, h)).astype(np.uint8)
+
+
 strtofunc = {
     "horizontal-linear-gradient": gradlinearh,
     "vertical-linear-gradient": gradlinearv,
@@ -50,4 +58,6 @@ strtofunc = {
     "sin-cos-pattern": patternsincos,
     "face": face,
     "ascent": ascent,
+    "white": white,
+    "black": black,
 }
