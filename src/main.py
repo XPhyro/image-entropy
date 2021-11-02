@@ -21,6 +21,20 @@ def parseargs():
     parser = argparse.ArgumentParser(description="Compute and display image entropy.")
 
     parser.add_argument(
+        "-g",
+        "--no-grey-image",
+        help=f"do not display greyscale image on plot.",
+        action="store_true",
+    )
+
+    parser.add_argument(
+        "-i",
+        "--no-input-image",
+        help=f"do not display input image on plot.",
+        action="store_true",
+    )
+
+    parser.add_argument(
         "-k",
         "--kernel-size",
         help="kernel size to be used with regional methods. must be a positive odd integer except 1. (default: 11)",
@@ -86,24 +100,31 @@ def plotall(entropy, colourimg, greyimg, plots):
 
     log("preparing figure")
 
-    nimg = len(plots) + 2
-    nx = nimg // 2
-    ny = math.ceil(nimg / (nimg // 2))
-
-    plt.subplot(nx, ny, 1)
-    if colourimg.shape == greyimg.shape and np.all(colourimg == greyimg):
-        plt.imshow(colourimg, cmap=plt.cm.gray)
+    imgoffset = -int(args.no_input_image) - int(args.no_grey_image)
+    nimg = len(plots) + 2 + imgoffset
+    if nimg == 1:
+        nx = 1
+        ny = 1
     else:
-        plt.imshow(colourimg)
-    plt.title(f"Input Image")
+        nx = nimg // 2
+        ny = math.ceil(nimg / (nimg // 2))
 
-    plt.subplot(nx, ny, 2)
-    plt.imshow(greyimg, cmap=plt.cm.gray)
-    plt.title(f"Greyscale Image")
+    if not args.no_input_image:
+        plt.subplot(nx, ny, 1)
+        if colourimg.shape == greyimg.shape and np.all(colourimg == greyimg):
+            plt.imshow(colourimg, cmap=plt.cm.gray)
+        else:
+            plt.imshow(colourimg)
+        plt.title(f"Input Image")
+
+    if not args.no_grey_image:
+        plt.subplot(nx, ny, 2 + imgoffset)
+        plt.imshow(greyimg, cmap=plt.cm.gray)
+        plt.title(f"Greyscale Image")
 
     for i, plot in enumerate(plots):
         img, title, flags = plot
-        plt.subplot(nx, ny, i + 3)
+        plt.subplot(nx, ny, i + 3 + imgoffset)
         if "forcecolour" in flags:
             plt.imshow(img, cmap=plt.cm.jet)
         else:
