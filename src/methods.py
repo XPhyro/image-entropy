@@ -223,7 +223,7 @@ def shannon2dr(args, colourimg, greyimg):
         [
             (
                 entimg,
-                "Entropy Map With {kernsize}x{kernsize} Kernel",
+                f"Entropy Map With {kernsize}x{kernsize} Kernel",
                 ["hasbar", "forcecolour"],
             )
         ],
