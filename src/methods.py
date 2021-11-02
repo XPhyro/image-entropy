@@ -53,7 +53,7 @@ def kapur1d(args, colourimg, greyimg):
 
     entimg = np.where(greyimg < threshold, greyimg, 0)
 
-    return (colourimg, greyimg, [(entimg, "Kapur Threshold", [])])
+    return (entropy, colourimg, greyimg, [(entimg, "Kapur Threshold", [])])
 
 
 def scipy1d(args, colourimg, greyimg):
@@ -63,7 +63,7 @@ def scipy1d(args, colourimg, greyimg):
     log(f"entropy: {entropy}")
     log(f"entropy ratio: {entropy / 8.0}")
 
-    return (None, None, None)
+    return (entropy, None, None, None)
 
 
 def shannon1d(args, colourimg, greyimg):
@@ -74,7 +74,7 @@ def shannon1d(args, colourimg, greyimg):
     log(f"entropy: {entropy}")
     log(f"entropy ratio: {entropy / 8.0}")
 
-    return (colourimg, greyimg, [(entimg, "Shannon Entropy", [])])
+    return (entropy, colourimg, greyimg, [(entimg, "Shannon Entropy", [])])
 
 
 def delentropy2d(args, colourimg, greyimg):
@@ -133,6 +133,7 @@ def delentropy2d(args, colourimg, greyimg):
     gradimg = np.invert(grad) if param_invert else grad
 
     return (
+        entropy,
         colourimg,
         greyimg,
         [
@@ -176,7 +177,7 @@ def gradient2d(args, colourimg, greyimg):
 
     log(f"gradient = {np.average(gradimg)} ± {np.std(gradimg)}")
 
-    return (colourimg, greyimg, [(gradimg, "Gradient", [])])
+    return (entropy, colourimg, greyimg, [(gradimg, "Gradient", [])])
 
 
 def scikit2dr(args, colourimg, greyimg):
@@ -189,7 +190,7 @@ def scikit2dr(args, colourimg, greyimg):
     log(f"entropy: {entropy}")
     log(f"entropy ratio: {entropy / 8.0}")
 
-    return (colourimg, greyimg, [(entimg, "Scikit Entropy", ["hasbar"])])
+    return (entropy, colourimg, greyimg, [(entimg, "Scikit Entropy", ["hasbar"])])
 
 
 def shannon2dr(args, colourimg, greyimg):
@@ -215,9 +216,13 @@ def shannon2dr(args, colourimg, greyimg):
             entropies.append(entropy)
             entimg[i, j] = entropy
 
-    log(f"entropy = {np.average(entropies)} ± {np.std(entropies)}")
+    # TODO: The average should not be used in latter computations.
+    #       This is just to show.
+    entropyavg = np.average(entropies)
+    log(f"entropy = {entropyavg} ± {np.std(entropies)}")
 
     return (
+        entropyavg,
         colourimg,
         greyimg,
         [

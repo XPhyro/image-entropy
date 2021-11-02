@@ -80,7 +80,7 @@ def argtyperadius(val):
     return ival
 
 
-def plotall(colourimg, greyimg, plots):
+def plotall(entropy, colourimg, greyimg, plots):
     if colourimg is None or greyimg is None or plots is None:
         return False
 
@@ -111,6 +111,8 @@ def plotall(colourimg, greyimg, plots):
         if "hasbar" in flags:
             plt.colorbar()
         plt.title(title)
+
+    plt.suptitle(f"{args.method}: {entropy if entropy is not None else 'NaN'}")
 
     plt.tight_layout()
 
