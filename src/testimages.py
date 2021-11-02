@@ -1,6 +1,9 @@
 import numpy as np
 
 
+SEED = 3141592653
+
+
 def gradlinearh(w=1024, h=1024):
     return np.outer(np.ones(256), np.arange(256)).astype(np.uint8)
 
@@ -15,6 +18,7 @@ def gradconic(w=1024, h=1024):
 
 
 def randunif(w=1024, h=1024):
+    np.random.seed(SEED)
     return (np.random.rand(w, h) * 255).astype(np.uint8)
 
 
