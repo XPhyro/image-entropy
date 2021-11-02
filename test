@@ -8,5 +8,5 @@ methods="2d-delentropy
 1d-shannon"
 
 printf "%s\n" "$methods" | while IFS= read -r method; do
-    src/main.py --method="$method" -- "${@:-"data/barbara.png"}" &
+    src/main.py --method="$method" "${@:-"data/barbara.png"}" &
 done
