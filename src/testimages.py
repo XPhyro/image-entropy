@@ -28,6 +28,21 @@ def pattern(w=1024, h=1024):
     return (np.cos(x) + np.sin(y)).astype(np.uint8)
 
 
+def coscos(w=1024, h=1024):
+    return (
+        np.abs(np.cos(np.arange(w)[:, None]) * np.cos(np.arange(h)[None, :])) * 255
+    ).astype(np.uint8)
+
+
+def cos2cos2(w=1024, h=1024):
+    return (
+        np.abs(
+            (np.cos(np.arange(w)[:, None]) ** 2) * (np.cos(np.arange(h)[None, :]) ** 2)
+        )
+        * 255
+    ).astype(np.uint8)
+
+
 def face(w=1024, h=1024):
     return spface(gray=True).astype(np.uint8)
 
