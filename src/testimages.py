@@ -27,10 +27,16 @@ def patterncossin(w=1024, h=1024):
     return (np.cos(x) + np.sin(y)).astype(np.uint8)
 
 
+def patternsincos(w=1024, h=1024):
+    x, y = np.meshgrid(range(w), range(h))
+    return (np.sin(x) + np.cos(y)).astype(np.uint8)
+
+
 strtofunc = {
     "horizontal-linear-gradient": gradlinearh,
     "vertical-linear-gradient": gradlinearv,
     "conic-gradient": gradconic,
     "uniform-random": randunif,
     "cos-sin-pattern": patterncossin,
+    "sin-cos-pattern": patternsincos,
 }
