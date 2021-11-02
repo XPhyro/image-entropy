@@ -23,14 +23,9 @@ def randunif(w=1024, h=1024):
     return (np.random.rand(w, h) * 255).astype(np.uint8)
 
 
-def patterncossin(w=1024, h=1024):
+def pattern(w=1024, h=1024):
     x, y = np.meshgrid(range(w), range(h))
     return (np.cos(x) + np.sin(y)).astype(np.uint8)
-
-
-def patternsincos(w=1024, h=1024):
-    x, y = np.meshgrid(range(w), range(h))
-    return (np.sin(x) + np.cos(y)).astype(np.uint8)
 
 
 def face(w=1024, h=1024):
@@ -54,8 +49,7 @@ strtofunc = {
     "vertical-linear-gradient": gradlinearv,
     "conic-gradient": gradconic,
     "uniform-random": randunif,
-    "cos-sin-pattern": patterncossin,
-    "sin-cos-pattern": patternsincos,
+    "pattern": pattern,
     "face": face,
     "ascent": ascent,
     "white": white,
