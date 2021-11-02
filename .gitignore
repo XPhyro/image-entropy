@@ -140,7 +140,3 @@ dmypy.json
 cython_debug/
 
 ### END DEFAULT GITIGNORE
-
-data/
-ref/
-paper/
