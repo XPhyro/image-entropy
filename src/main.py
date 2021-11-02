@@ -13,6 +13,7 @@ import numpy as np
 
 from log import log
 import methods
+import testimages
 
 
 def parseargs():
@@ -56,6 +57,13 @@ def parseargs():
         help="disk radius to be used with regional methods. must be an integer greater than 2. (default: 10)",
         type=argtyperadius,
         default=10,
+    )
+
+    parser.add_argument(
+        "-t",
+        "--use-tests",
+        help=f"use generated test images instead of reading images from disk. possible test images are: {', '.join(testimages.strtofunc.keys())}",
+        action="store_true",
     )
 
     parser.add_argument(
@@ -151,11 +159,15 @@ def main():
     for i, fl in enumerate(args.files):
         log(f"processing file: {fl}")
 
-        inputimg = cv.imread(fl)
-        colourimg = cv.cvtColor(inputimg, cv.COLOR_BGR2RGB)  # for plotting
-        greyimg = cv.cvtColor(inputimg, cv.COLOR_BGR2GRAY)
+        if args.use_tests:
+            greyimg = testimages.strtofunc[fl]()
+            colourimg = cv.cvtColor(greyimg, cv.COLOR_GRAY2RGB)  # for plotting
+        else:
+            inputimg = cv.imread(fl)
+            colourimg = cv.cvtColor(inputimg, cv.COLOR_BGR2RGB)  # for plotting
+            greyimg = cv.cvtColor(inputimg, cv.COLOR_BGR2GRAY)
 
-        assert greyimg.dtype == np.uint8, "image channel depth must be 8 bits"
+            assert greyimg.dtype == np.uint8, "image channel depth must be 8 bits"
 
         # prevent over/underflows during computation
         colourimg = colourimg.astype(np.int64)
