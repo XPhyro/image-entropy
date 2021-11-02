@@ -53,7 +53,12 @@ def kapur1d(args, colourimg, greyimg):
 
     entimg = np.where(greyimg < threshold, greyimg, 0)
 
-    return (entropy, colourimg, greyimg, [(entimg, "Kapur Threshold", [])])
+    return (
+        f"{entropy} after 1 iteration",
+        colourimg,
+        greyimg,
+        [(entimg, "Kapur Threshold", [])],
+    )
 
 
 def scipy1d(args, colourimg, greyimg):
