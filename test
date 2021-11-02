@@ -1,0 +1,12 @@
+#!/usr/bin/env sh
+
+methods="2d-delentropy
+2d-regional-shannon
+2d-regional-scikit
+1d-kapur
+1d-scipy
+1d-shannon"
+
+printf "%s\n" "$methods" | while IFS= read -r method; do
+    src/main.py --method="$method" -- "${@:-"data/barbara.png"}" &
+done
