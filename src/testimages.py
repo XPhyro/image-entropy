@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.misc import face as spface, ascent as spascent
 
 
 SEED = 3141592653
@@ -32,6 +33,14 @@ def patternsincos(w=1024, h=1024):
     return (np.sin(x) + np.cos(y)).astype(np.uint8)
 
 
+def face(w=1024, h=1024):
+    return spface(gray=True).astype(np.uint8)
+
+
+def ascent(w=1024, h=1024):
+    return spascent().astype(np.uint8)
+
+
 strtofunc = {
     "horizontal-linear-gradient": gradlinearh,
     "vertical-linear-gradient": gradlinearv,
@@ -39,4 +48,6 @@ strtofunc = {
     "uniform-random": randunif,
     "cos-sin-pattern": patterncossin,
     "sin-cos-pattern": patternsincos,
+    "face": face,
+    "ascent": ascent,
 }
