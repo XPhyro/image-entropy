@@ -18,6 +18,16 @@ def gradconic(w=1024, h=1024):
     return (np.arctan2(h / 2 - y, w / 2 - x) * (255 / np.pi / 2)).astype(np.uint8)
 
 
+def gradhalfconic(w=1024, h=1024):
+    x, y = np.meshgrid(range(w), range(h))
+    return (np.arctan2(h - y, w / 2 - x) * (255 / np.pi / 2)).astype(np.uint8)
+
+
+def graddiag(w=1024, h=1024):
+    x, y = np.meshgrid(range(w), range(h))
+    return (np.arctan2(h - y, w - x) * (255 / np.pi / 2)).astype(np.uint8)
+
+
 def randunif(w=1024, h=1024):
     np.random.seed(SEED)
     return (np.random.rand(w, h) * 255).astype(np.uint8)
@@ -63,6 +73,8 @@ strtofunc = {
     "gradlinearh": gradlinearh,
     "gradlinearv": gradlinearv,
     "gradconic": gradconic,
+    "gradhalfconic": gradhalfconic,
+    "graddiag": graddiag,
     "randunif": randunif,
     "pattern": pattern,
     "coscos": coscos,
