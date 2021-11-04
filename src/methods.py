@@ -107,7 +107,6 @@ def delentropy2d(args, colourimg, greyimg):
         fx.flatten(),
         fy.flatten(),
         bins=2 * jrng + 1,
-        range=[[-jrng, jrng], [-jrng, jrng]],
     )
 
     ### 1609.01117 page 22
