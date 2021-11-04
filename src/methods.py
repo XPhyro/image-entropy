@@ -138,6 +138,55 @@ def delentropy2d(args, colourimg, greyimg):
     )
 
 
+def delentropynd(args, colourimg, greyimg):
+    ### 1609.01117 page 10
+
+    # $\nabla f(n) \approx f(n) - f(n - 1)$
+    fx = greyimg[:, 2:] - greyimg[:, :-2]
+    fy = greyimg[2:, :] - greyimg[:-2, :]
+    # fix shape
+    fx = fx[1:-1, :]
+    fy = fy[:, 1:-1]
+
+    # ensure $-255 \leq J \leq 255$
+    jrng = np.max([np.max(np.abs(fx)), np.max(np.abs(fy))])
+    assert jrng <= 255, "J must be in range [-255, 255]"
+
+    ### 1609.01117 page 16
+
+    hist, edges = np.histogramdd(
+        np.vstack([fx.flatten(), fy.flatten()]).transpose(),
+        bins=2 * jrng + 1,
+    )
+
+    ### 1609.01117 page 22
+
+    deldensity = hist / hist.sum()
+    deldensity = deldensity * -np.ma.log2(deldensity)
+    entropy = np.sum(deldensity)
+    entropy /= 2  # 4.3 Papoulis generalized sampling halves the delentropy
+
+    log(f"entropy: {entropy}")
+    log(f"entropy ratio: {entropy / 8.0}")
+
+    # the reference image seems to be bitwise inverted, I don't know why.
+    # the entropy doesn't change when inverted, so both are okay in
+    # the previous computational steps.
+    param_invert = True
+
+    # gradimg = np.invert(grad) if param_invert else grad
+
+    return (
+        entropy,
+        colourimg,
+        greyimg,
+        [
+            # (gradimg, "Gradient", []),
+            (deldensity, "Deldensity", ["hasbar", "forcecolour"]),
+        ],
+    )
+
+
 def delentropy2dv(args, colourimg, greyimg):
     ### 1609.01117 page 10
 
@@ -170,7 +219,6 @@ def delentropy2dv(args, colourimg, greyimg):
     entropy = np.sum(deldensity)
     entropy /= 2  # 4.3 Papoulis generalized sampling halves the delentropy
 
-    # TODO: entropy is different from `sipp` and the paper, but very similar
     log(f"entropy: {entropy}")
     log(f"entropy ratio: {entropy / 8.0}")
 
@@ -187,6 +235,50 @@ def delentropy2dv(args, colourimg, greyimg):
         greyimg,
         [
             (gradimg, "Gradient", []),
+            (deldensity, "Deldensity", ["hasbar", "forcecolour"]),
+        ],
+    )
+
+
+def delentropyndv(args, colourimg, greyimg):
+    ### 1609.01117 page 10
+
+    grad = [f.astype(int).flatten() for f in np.gradient(greyimg)]
+
+    # ensure $-255 \leq J \leq 255$
+    jrng = np.max(np.abs(grad))
+    assert jrng <= 255, "J must be in range [-255, 255]"
+
+    ### 1609.01117 page 16
+
+    hist, edges = np.histogramdd(
+        np.vstack(grad).transpose(),
+        bins=2 * jrng + 1,
+    )
+
+    ### 1609.01117 page 22
+
+    deldensity = hist / hist.sum()
+    deldensity = deldensity * -np.ma.log2(deldensity)
+    entropy = np.sum(deldensity)
+    entropy /= 2  # 4.3 Papoulis generalized sampling halves the delentropy
+
+    log(f"entropy: {entropy}")
+    log(f"entropy ratio: {entropy / 8.0}")
+
+    # the reference image seems to be bitwise inverted, I don't know why.
+    # the entropy doesn't change when inverted, so both are okay in
+    # the previous computational steps.
+    param_invert = True
+
+    # gradimg = np.invert(grad) if param_invert else grad
+
+    return (
+        entropy,
+        colourimg,
+        greyimg,
+        [
+            # (gradimg, "Gradient", []),
             (deldensity, "Deldensity", ["hasbar", "forcecolour"]),
         ],
     )
@@ -289,7 +381,9 @@ strtofunc = {
     "1d-scipy": scipy1d,
     "1d-shannon": shannon1d,
     "2d-delentropy": delentropy2d,
+    "2d-delentropy-ndim": delentropynd,
     "2d-delentropy-variation": delentropy2dv,
+    "2d-delentropy-variation-ndim": delentropyndv,
     "2d-gradient": gradient2d,
     "2d-regional-scikit": scikit2dr,
     "2d-regional-shannon": shannon2dr,
