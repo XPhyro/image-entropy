@@ -57,7 +57,7 @@ def kapur1dv(args, colourimg, greyimg):
         f"{entropy} after 1 iteration",
         colourimg,
         greyimg,
-        [(entimg, "Kapur Threshold", [])],
+        [(entimg, "Kapur Threshold", ["hasbar"])],
     )
 
 
