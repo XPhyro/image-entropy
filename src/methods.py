@@ -321,7 +321,12 @@ def scikit2dr(args, colourimg, greyimg):
     log(f"entropy: {entropy}")
     log(f"entropy ratio: {entropy / 8.0}")
 
-    return (entropy, colourimg, greyimg, [(entimg, "Scikit Entropy", ["hasbar"])])
+    return (
+        entropy,
+        colourimg,
+        greyimg,
+        [(entimg, f"Scikit Entropy With Disk of Radius {args.radius}", ["hasbar"])],
+    )
 
 
 def shannon2dr(args, colourimg, greyimg):
