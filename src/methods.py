@@ -61,7 +61,7 @@ def kapur1d(args, colourimg, greyimg):
     )
 
 
-def scipy1d(args, colourimg, greyimg):
+def shannon1d(args, colourimg, greyimg):
     signal = greyimg.flatten() / greyimg.sum()
     entropy = spentropy(signal, base=8)
 
@@ -69,17 +69,6 @@ def scipy1d(args, colourimg, greyimg):
     log(f"entropy ratio: {entropy / 8.0}")
 
     return (entropy, None, None, None)
-
-
-def shannon1d(args, colourimg, greyimg):
-    signal = greyimg / greyimg.sum()
-    entimg = signal * -np.ma.log2(signal)
-    entropy = entimg.sum()
-
-    log(f"entropy: {entropy}")
-    log(f"entropy ratio: {entropy / 8.0}")
-
-    return (entropy, colourimg, greyimg, [(entimg, "Shannon Entropy", [])])
 
 
 def delentropy2d(args, colourimg, greyimg):
@@ -101,7 +90,7 @@ def delentropy2d(args, colourimg, greyimg):
     jrng = np.max([np.max(np.abs(fx)), np.max(np.abs(fy))])
     assert jrng <= 255, "J must be in range [-255, 255]"
 
-    ### 1609.01117 page 16
+    ### 1609.01117 page 16, eq 17
 
     hist, edgex, edgey = np.histogram2d(
         fx.flatten(),
@@ -109,11 +98,12 @@ def delentropy2d(args, colourimg, greyimg):
         bins=2 * jrng + 1,
     )
 
-    ### 1609.01117 page 22
+    ### 1609.01117 page 20, eq 22
 
     deldensity = hist / np.sum(hist)
     deldensity = deldensity * -np.ma.log2(deldensity)
     entropy = np.sum(deldensity)
+
     entropy /= 2  # 4.3 Papoulis generalized sampling halves the delentropy
 
     # TODO: entropy is different from `sipp` and the paper, but very similar
@@ -378,7 +368,6 @@ def shannon2dr(args, colourimg, greyimg):
 
 strtofunc = {
     "1d-kapur": kapur1d,
-    "1d-scipy": scipy1d,
     "1d-shannon": shannon1d,
     "2d-delentropy": delentropy2d,
     "2d-delentropy-ndim": delentropynd,
