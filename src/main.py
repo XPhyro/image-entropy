@@ -141,7 +141,7 @@ def plotall(entropy, colourimg, greyimg, plots):
             plt.colorbar()
         plt.title(title)
 
-    plt.suptitle(f"{args.method}: {entropy if entropy is not None else 'NaN'}")
+    plt.suptitle(f"{args.method}\n$H = {entropy if entropy is not None else 'NaN'}$")
 
     plt.tight_layout()
 
