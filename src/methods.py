@@ -62,8 +62,8 @@ def kapur1d(args, colourimg, greyimg):
 
 
 def shannon1d(args, colourimg, greyimg):
-    signal = greyimg.flatten() / greyimg.sum()
-    entropy = spentropy(signal, base=8)
+    value, counts = np.unique(greyimg.flatten(), return_counts=True)
+    entropy = spentropy(counts, base=2)
 
     log(f"entropy: {entropy}")
     log(f"entropy ratio: {entropy / 8.0}")
