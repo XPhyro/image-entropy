@@ -25,7 +25,7 @@ def gradhalfconic(w=1024, h=1024):
 
 def graddiag(w=1024, h=1024):
     x, y = np.meshgrid(range(w), range(h))
-    return (np.arctan2(h - y, w - x) * (255 / np.pi / 2)).astype(np.uint8)
+    return (np.arctan2(h - y, w - x) * (255 / np.pi)).astype(np.uint8)
 
 
 def randunif(w=1024, h=1024):
