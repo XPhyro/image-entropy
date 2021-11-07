@@ -60,6 +60,13 @@ def parseargs():
     )
 
     parser.add_argument(
+        "-s",
+        "--save",
+        help=f"save the plots instead of showing",
+        action="store_true",
+    )
+
+    parser.add_argument(
         "-t",
         "--use-tests",
         help=f"use generated test images instead of reading images from disk. possible test images are: {', '.join(testimages.strtofunc.keys())}",
@@ -141,7 +148,7 @@ def plotall(entropy, colourimg, greyimg, plots):
             plt.colorbar()
         plt.title(title)
 
-    plt.suptitle(f"{args.method}\n$H = {entropy if entropy is not None else 'NaN'}$")
+    plt.suptitle(f"{args.method}\n$H$ = {entropy if entropy is not None else 'NaN'}")
 
     plt.tight_layout()
 
@@ -177,14 +184,17 @@ def main():
 
         plt.figure(i + 1)
         hasfigure |= plotall(*methods.strtofunc[args.method](args, colourimg, greyimg))
+        if args.save:
+            plt.savefig(f"{args.method}_{fl}.pdf", bbox_inches="tight")
 
         if i != nfl:
             print()
 
-    if hasfigure:
-        plt.show()
-    else:
-        log("no figure to show")
+    if not args.save:
+        if hasfigure:
+            plt.show()
+        else:
+            log("no figure to show")
 
 
 if __name__ == "__main__":
