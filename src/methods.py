@@ -30,7 +30,7 @@ import numpy as np
 from log import log
 
 
-def kapur1d(args, colourimg, greyimg):
+def kapur1dv(args, colourimg, greyimg):
     hist = np.histogram(greyimg, bins=256, range=(0, 256))[0]
     cdf = hist.astype(float).cumsum()  # cumulative distribution function
     binrng = np.nonzero(hist)[0][[0, -1]]
@@ -367,7 +367,7 @@ def shannon2dr(args, colourimg, greyimg):
 
 
 strtofunc = {
-    "1d-kapur": kapur1d,
+    "1d-kapur-variation": kapur1dv,
     "1d-shannon": shannon1d,
     "2d-delentropy": delentropy2d,
     "2d-delentropy-ndim": delentropynd,
