@@ -28,6 +28,10 @@ def graddiag(w=1024, h=1024):
     return (np.arctan2(h - y, w - x) * (255 / np.pi)).astype(np.uint8)
 
 
+def gradindex(w=1024, h=1024):
+    return (np.indices((w, h)).sum(axis=0) % 256).astype(np.uint8)
+
+
 def randunif(w=1024, h=1024):
     np.random.seed(SEED)
     return (np.random.rand(w, h) * 255).astype(np.uint8)
@@ -69,12 +73,17 @@ def black(w=1024, h=1024):
     return np.zeros((w, h)).astype(np.uint8)
 
 
+def check(w=1024, h=1024):
+    return ((np.indices((w, h)).sum(axis=0) % 2) * 255).astype(np.uint8)
+
+
 strtofunc = {
     "gradlinearh": gradlinearh,
     "gradlinearv": gradlinearv,
     "gradconic": gradconic,
     "gradhalfconic": gradhalfconic,
     "graddiag": graddiag,
+    "gradindex": gradindex,
     "randunif": randunif,
     "pattern": pattern,
     "coscos": coscos,
@@ -83,4 +92,5 @@ strtofunc = {
     "ascent": ascent,
     "white": white,
     "black": black,
+    "check": check,
 }
