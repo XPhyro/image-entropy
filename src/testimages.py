@@ -62,7 +62,7 @@ def ascent(w=1024, h=1024):
 
 
 def white(w=1024, h=1024):
-    return np.ones((w, h)).astype(np.uint8)
+    return (np.ones((w, h)) * 255).astype(np.uint8)
 
 
 def black(w=1024, h=1024):
