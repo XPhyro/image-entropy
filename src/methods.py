@@ -122,8 +122,8 @@ def delentropy2d(args, colourimg, greyimg):
         colourimg,
         greyimg,
         [
-            (gradimg, "Gradient", []),
-            (deldensity, "Deldensity", ["hasbar", "forcecolour"]),
+            (gradimg, "Gradient", ["hasbar"]),
+            (deldensity, "Deldensity", ["hasbar"]),
         ],
     )
 
@@ -172,7 +172,7 @@ def delentropynd(args, colourimg, greyimg):
         greyimg,
         [
             # (gradimg, "Gradient", []),
-            (deldensity, "Deldensity", ["hasbar", "forcecolour"]),
+            (deldensity, "Deldensity", ["hasbar"]),
         ],
     )
 
@@ -224,8 +224,8 @@ def delentropy2dv(args, colourimg, greyimg):
         colourimg,
         greyimg,
         [
-            (gradimg, "Gradient", []),
-            (deldensity, "Deldensity", ["hasbar", "forcecolour"]),
+            (gradimg, "Gradient", ["hasbar"]),
+            (deldensity, "Deldensity", ["hasbar"]),
         ],
     )
 
@@ -269,7 +269,7 @@ def delentropyndv(args, colourimg, greyimg):
         greyimg,
         [
             # (gradimg, "Gradient", []),
-            (deldensity, "Deldensity", ["hasbar", "forcecolour"]),
+            (deldensity, "Deldensity", ["hasbar"]),
         ],
     )
 
@@ -365,7 +365,7 @@ def shannon2dr(args, colourimg, greyimg):
             (
                 entimg,
                 f"Entropy Map With {kernsize}x{kernsize} Kernel",
-                ["hasbar", "forcecolour"],
+                ["hasbar"],
             )
         ],
     )
