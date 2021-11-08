@@ -31,7 +31,7 @@ from log import log
 
 
 def kapur1dv(args, colourimg, greyimg):
-    hist = np.histogram(greyimg, bins=256, range=(0, 256))[0]
+    hist = np.histogram(greyimg, bins=255, range=(0, 256))[0]
     cdf = hist.astype(float).cumsum()  # cumulative distribution function
     binrng = np.nonzero(hist)[0][[0, -1]]
 
@@ -95,7 +95,7 @@ def delentropy2d(args, colourimg, greyimg):
     hist, edgex, edgey = np.histogram2d(
         fx.flatten(),
         fy.flatten(),
-        bins=2 * jrng + 1,
+        bins=255,
     )
 
     ### 1609.01117 page 20, eq 22
@@ -146,7 +146,7 @@ def delentropynd(args, colourimg, greyimg):
 
     hist, edges = np.histogramdd(
         np.vstack([fx.flatten(), fy.flatten()]).transpose(),
-        bins=2 * jrng + 1,
+        bins=255,
     )
 
     ### 1609.01117 page 22
@@ -198,7 +198,7 @@ def delentropy2dv(args, colourimg, greyimg):
     hist, edgex, edgey = np.histogram2d(
         fx.flatten(),
         fy.flatten(),
-        bins=2 * jrng + 1,
+        bins=255,
         range=[[-jrng, jrng], [-jrng, jrng]],
     )
 
@@ -243,7 +243,7 @@ def delentropyndv(args, colourimg, greyimg):
 
     hist, edges = np.histogramdd(
         np.vstack(grad).transpose(),
-        bins=2 * jrng + 1,
+        bins=255,
     )
 
     ### 1609.01117 page 22
