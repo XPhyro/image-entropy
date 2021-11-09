@@ -274,43 +274,6 @@ def delentropyndv(args, colourimg, greyimg):
     )
 
 
-def gradient2d(args, colourimg, greyimg):
-    param_realgrad = True
-    param_concave = True
-
-    if param_realgrad:
-        grads = np.gradient(greyimg)
-        gradx = grads[0]
-        grady = grads[1]
-    else:
-        gradx = cv.filter2D(
-            greyimg,
-            cv.CV_8U,
-            cv.flip(np.array([[1, 0, -1], [1, 0, -1], [1, 0, -1]]), -1),
-            borderType=cv.BORDER_CONSTANT,
-        )
-        grady = cv.filter2D(
-            greyimg,
-            cv.CV_8U,
-            cv.flip(np.array([[1, 1, 1], [0, 0, 0], [-1, -1, -1]]), -1),
-            borderType=cv.BORDER_CONSTANT,
-        )
-
-    gradimg = (
-        np.bitwise_or(gradx, grady)
-        if not param_realgrad
-        else (
-            gradx + grady
-            if not param_concave
-            else np.invert(np.array(gradx + grady, dtype=int))
-        )
-    )
-
-    log(f"gradient = {np.average(gradimg)} ± {np.std(gradimg)}")
-
-    return (entropy, colourimg, greyimg, [(gradimg, "Gradient", [])])
-
-
 def scikit2dr(args, colourimg, greyimg):
     # From scikit docs:
     # The entropy is computed using base 2 logarithm i.e. the filter returns
@@ -378,7 +341,6 @@ strtofunc = {
     "2d-delentropy-ndim": delentropynd,
     "2d-delentropy-variation": delentropy2dv,
     "2d-delentropy-variation-ndim": delentropyndv,
-    "2d-gradient": gradient2d,
     "2d-regional-scikit": scikit2dr,
     "2d-regional-shannon": shannon2dr,
 }
