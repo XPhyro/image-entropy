@@ -46,9 +46,9 @@ def parseargs():
     parser.add_argument(
         "-m",
         "--method",
-        help=f"method to use. possible values: {', '.join(methods.strtofunc.keys())} (default: {methods.default})",
-        type=argtypemethod,
-        default=methods.default,
+        help=f"method to use.",
+        choices=list(methods.strtofunc.keys()),
+        required=True,
     )
 
     parser.add_argument(
@@ -87,12 +87,6 @@ def parseargs():
     )
 
     args = parser.parse_args()
-
-
-def argtypemethod(val):
-    if val not in methods.strtofunc.keys():
-        raise argparse.ArgumentTypeError(f"{val} is not a valid method.")
-    return val
 
 
 def argtypekernelsize(val):
