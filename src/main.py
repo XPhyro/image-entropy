@@ -48,7 +48,6 @@ def parseargs():
         "--method",
         help=f"method to use.",
         choices=list(methods.strtofunc.keys()),
-        required=True,
     )
 
     parser.add_argument(
@@ -57,6 +56,13 @@ def parseargs():
         help="disk radius to be used with regional methods. must be an integer greater than 2. (default: 10)",
         type=argtyperadius,
         default=10,
+    )
+
+    parser.add_argument(
+        "-S",
+        "--save-tests",
+        help=f"save all test images to the given directory",
+        type=str,
     )
 
     parser.add_argument(
@@ -84,10 +90,19 @@ def parseargs():
         "files",
         help="paths to input image files",
         metavar="FILE",
-        nargs="+",
+        nargs="*",
     )
 
     args = parser.parse_args()
+
+    if args.save_tests is None:
+        reqlst = []
+        if args.method is None:
+            reqlst.append("-m/--method")
+        if len(args.files) == 0:
+            reqlst.append("FILE")
+        if len(reqlst) != 0:
+            parser.error(f"the following arguments are required: {', '.join(reqlst)}")
 
 
 def argtypekernelsize(val):
@@ -152,6 +167,11 @@ def plotall(entropy, colourimg, greyimg, plots):
 
 def main():
     parseargs()
+
+    if args.save_tests is not None:
+        for s, f in testimages.strtofunc.items():
+            cv.imwrite(f"{args.save_tests}/{s}.png", f())
+        exit(0)
 
     if not args.white_background:
         plt.style.use("dark_background")
