@@ -83,6 +83,7 @@ def parseargs():
     parser.add_argument(
         "files",
         help="paths to input image files",
+        metavar="FILE",
         nargs="+",
     )
 
