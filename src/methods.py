@@ -382,5 +382,3 @@ strtofunc = {
     "2d-regional-scikit": scikit2dr,
     "2d-regional-shannon": shannon2dr,
 }
-
-default = "2d-delentropy"
