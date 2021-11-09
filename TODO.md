@@ -17,3 +17,4 @@
 # Other
 - Write a function that *regional*ises methods.
 - Add a `CITATION.cff` file.
+- Add a readme.
