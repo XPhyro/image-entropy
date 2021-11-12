@@ -11,6 +11,14 @@ from matplotlib import pyplot as plt
 import cv2 as cv
 import numpy as np
 
+try:
+    from pypapi import events, papi_high as high
+    import time
+
+    haspapi = True
+except:
+    haspapi = False
+
 from log import log
 import methods
 import testimages
@@ -198,7 +206,21 @@ def main():
         log("processing image")
 
         plt.figure(i + 1)
-        hasfigure |= plotall(*methods.strtofunc[args.method](args, colourimg, greyimg))
+        if haspapi:
+            timebeg = time.process_time()
+            high.start_counters([events.PAPI_DP_OPS])
+            plots = methods.strtofunc[args.method](args, colourimg, greyimg)
+            dp = high.stop_counters()
+            high.start_counters([events.PAPI_SP_OPS])
+            plots = methods.strtofunc[args.method](args, colourimg, greyimg)
+            sp = high.stop_counters()
+            timeend = time.process_time()
+            print(
+                f"FLO: {np.sum([dp, sp])}\nFLOPS: {np.sum([dp, sp]) / (timeend - timebeg)}"
+            )
+        else:
+            plots = methods.strtofunc[args.method](args, colourimg, greyimg)
+        hasfigure |= plotall(*plots)
         if args.save:
             plt.savefig(f"{args.method}_{fl}.pdf", bbox_inches="tight")
 
