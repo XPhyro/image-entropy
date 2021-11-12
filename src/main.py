@@ -6,6 +6,7 @@
 
 import argparse
 import math
+import time
 
 from matplotlib import pyplot as plt
 import cv2 as cv
@@ -13,7 +14,6 @@ import numpy as np
 
 try:
     from pypapi import events, papi_high as high
-    import time
 
     haspapi = True
 except:
@@ -214,24 +214,66 @@ def main():
 
         plt.figure(i + 1)
         if args.print_performance and haspapi:
+            try:
+                high.start_counters([events.PAPI_FP_OPS])
+                methods.strtofunc[args.method](args, colourimg, greyimg)
+                fp = high.stop_counters()
+
+                timebeg = time.process_time()
+                plots = methods.strtofunc[args.method](args, colourimg, greyimg)
+                timeend = time.process_time()
+
+                log(
+                    f"FLO: {fp[0]}",
+                    f"FLOPS: {fp[0] / (timeend - timebeg)}",
+                    f"process time: {timeend - timebeg}",
+                )
+            except:
+                try:
+                    log(
+                        "PAPI_FP_OPS unavailable. "
+                        + "FLO/FLOPS will be estimated using PAPI_SP_OPS and PAPI_DP_OPS."
+                    )
+
+                    high.start_counters([events.PAPI_DP_OPS])
+                    methods.strtofunc[args.method](args, colourimg, greyimg)
+                    dp = high.stop_counters()
+
+                    high.start_counters([events.PAPI_SP_OPS])
+                    methods.strtofunc[args.method](args, colourimg, greyimg)
+                    sp = high.stop_counters()
+
+                    timebeg = time.process_time()
+                    plots = methods.strtofunc[args.method](args, colourimg, greyimg)
+                    timeend = time.process_time()
+
+                    log(
+                        f"FLO: {np.sum([dp, sp])}",
+                        f"FLOPS: {np.sum([dp, sp]) / (timeend - timebeg)}",
+                        f"process time: {timeend - timebeg}",
+                    )
+                except:
+                    log(
+                        "PAPI_SP_OPS or PAPI_DP_OPS unavailable. "
+                        + "FLO/FLOPS will be omitted."
+                    )
+
+                    timebeg = time.process_time()
+                    plots = methods.strtofunc[args.method](args, colourimg, greyimg)
+                    timeend = time.process_time()
+
+                    log(f"process time: {timeend - timebeg}")
+        elif args.print_performance:
+            log("performance statistics requested but pypapi is not available.")
+
             timebeg = time.process_time()
-            high.start_counters([events.PAPI_DP_OPS])
             plots = methods.strtofunc[args.method](args, colourimg, greyimg)
-            dp = high.stop_counters()
-            high.start_counters([events.PAPI_SP_OPS])
-            plots = methods.strtofunc[args.method](args, colourimg, greyimg)
-            sp = high.stop_counters()
             timeend = time.process_time()
-            log(
-                f"FLO: {np.sum([dp, sp])}",
-                f"FLOPS: {np.sum([dp, sp]) / (timeend - timebeg)}",
-                f"process time: {timeend - timebeg}",
-            )
         else:
-            if not haspapi:
-                log("performance statistics requested but pypapi is not available.")
             plots = methods.strtofunc[args.method](args, colourimg, greyimg)
+
         hasfigure |= plotall(*plots)
+
         if args.save:
             plt.savefig(f"{args.method}_{fl}.pdf", bbox_inches="tight")
 
