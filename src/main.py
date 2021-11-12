@@ -208,6 +208,8 @@ def main():
     if not args.white_background:
         plt.style.use("dark_background")
 
+    log.info(f"selected method: {args.method}")
+
     hasfigure = False
     nfl = len(args.files) - 1
     for i, fl in enumerate(args.files):
