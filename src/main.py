@@ -59,6 +59,13 @@ def parseargs():
     )
 
     parser.add_argument(
+        "-p",
+        "--print-performance",
+        help=f"print performance statistics.",
+        action="store_true",
+    )
+
+    parser.add_argument(
         "-r",
         "--radius",
         help="disk radius to be used with regional methods. must be an integer greater than 2. (default: 10)",
@@ -206,7 +213,7 @@ def main():
         log("processing image")
 
         plt.figure(i + 1)
-        if haspapi:
+        if args.print_performance and haspapi:
             timebeg = time.process_time()
             high.start_counters([events.PAPI_DP_OPS])
             plots = methods.strtofunc[args.method](args, colourimg, greyimg)
@@ -221,6 +228,8 @@ def main():
                 f"process time: {timeend - timebeg}",
             )
         else:
+            if not haspapi:
+                log("performance statistics requested but pypapi is not available.")
             plots = methods.strtofunc[args.method](args, colourimg, greyimg)
         hasfigure |= plotall(*plots)
         if args.save:
