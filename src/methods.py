@@ -27,7 +27,7 @@ from skimage.morphology import disk as skdisk
 import cv2 as cv
 import numpy as np
 
-from log import log
+import log
 
 
 def kapur1dv(args, colourimg, greyimg):
@@ -47,7 +47,7 @@ def kapur1dv(args, colourimg, greyimg):
         if entropy > entropymax:
             entropymax, threshold = entropy, i
 
-    log(
+    log.info(
         f"entropy: {entropy}",
         f"threshold: {threshold}",
         f"entropy ratio: {entropy / 8.0}",
@@ -67,7 +67,7 @@ def shannon1d(args, colourimg, greyimg):
     value, counts = np.unique(greyimg.flatten(), return_counts=True)
     entropy = spentropy(counts, base=2)
 
-    log(
+    log.info(
         f"entropy: {entropy}",
         f"entropy ratio: {entropy / 8.0}",
     )
@@ -111,7 +111,7 @@ def delentropy2d(args, colourimg, greyimg):
     entropy /= 2  # 4.3 Papoulis generalized sampling halves the delentropy
 
     # TODO: entropy is different from `sipp` and the paper, but very similar
-    log(
+    log.info(
         f"entropy: {entropy}",
         f"entropy ratio: {entropy / 8.0}",
     )
@@ -162,7 +162,7 @@ def delentropynd(args, colourimg, greyimg):
     entropy = np.sum(deldensity)
     entropy /= 2  # 4.3 Papoulis generalized sampling halves the delentropy
 
-    log(
+    log.info(
         f"entropy: {entropy}",
         f"entropy ratio: {entropy / 8.0}",
     )
@@ -217,7 +217,7 @@ def delentropy2dv(args, colourimg, greyimg):
     entropy = np.sum(deldensity)
     entropy /= 2  # 4.3 Papoulis generalized sampling halves the delentropy
 
-    log(
+    log.info(
         f"entropy: {entropy}",
         f"entropy ratio: {entropy / 8.0}",
     )
@@ -263,7 +263,7 @@ def delentropyndv(args, colourimg, greyimg):
     entropy = np.sum(deldensity)
     entropy /= 2  # 4.3 Papoulis generalized sampling halves the delentropy
 
-    log(
+    log.info(
         f"entropy: {entropy}",
         f"entropy ratio: {entropy / 8.0}",
     )
@@ -293,7 +293,7 @@ def scikit2dr(args, colourimg, greyimg):
     entimg = skentropy(greyimg.astype(np.uint8), skdisk(args.radius))
     entropy = entimg.mean()
 
-    log(
+    log.info(
         f"entropy: {entropy}",
         f"entropy ratio: {entropy / 8.0}",
     )
@@ -332,7 +332,7 @@ def shannon2dr(args, colourimg, greyimg):
     # TODO: The average should not be used in latter computations.
     #       This is just to show.
     entropyavg = np.average(entropies)
-    log(
+    log.info(
         f"entropy = {entropyavg} ± {np.std(entropies)}",
     )
 

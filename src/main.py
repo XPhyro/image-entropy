@@ -6,20 +6,13 @@
 
 import argparse
 import math
-import time
 
 from matplotlib import pyplot as plt
 import cv2 as cv
 import numpy as np
 
-try:
-    from pypapi import events, papi_high as high
-
-    haspapi = True
-except:
-    haspapi = False
-
-from log import log
+import log
+import benchmark
 import methods
 import testimages
 
@@ -28,6 +21,8 @@ def parseargs():
     global args
 
     parser = argparse.ArgumentParser(description="Compute and display image entropy.")
+
+    opgroup = parser.add_mutually_exclusive_group()
 
     parser.add_argument(
         "-g",
@@ -58,10 +53,25 @@ def parseargs():
         choices=list(methods.strtofunc.keys()),
     )
 
+    opgroup.add_argument(
+        "-n",
+        "--noop",
+        help=f"do not show or save plot.",
+        action="store_true",
+    )
+
+    parser.add_argument(
+        "-P",
+        "--performance-count",
+        help=f"number of iterations to use in performance metrics.",
+        type=argtypeuint,
+        default=1,
+    )
+
     parser.add_argument(
         "-p",
         "--print-performance",
-        help=f"print performance statistics.",
+        help=f"print performance metrics.",
         action="store_true",
     )
 
@@ -80,7 +90,7 @@ def parseargs():
         type=str,
     )
 
-    parser.add_argument(
+    opgroup.add_argument(
         "-s",
         "--save",
         help=f"save the plots instead of showing",
@@ -134,11 +144,18 @@ def argtyperadius(val):
     return ival
 
 
+def argtypeuint(val):
+    ival = int(val)
+    if ival < 0:
+        raise argparse.ArgumentTypeError(f"{ival} is not a non-negative integer.")
+    return ival
+
+
 def plotall(entropy, colourimg, greyimg, plots):
     if colourimg is None or greyimg is None or plots is None:
         return False
 
-    log("preparing figure")
+    log.info("preparing figure")
 
     imgoffset = -int(args.no_input_image) - int(args.no_grey_image)
     nimg = len(plots) + 2 + imgoffset
@@ -194,7 +211,7 @@ def main():
     hasfigure = False
     nfl = len(args.files) - 1
     for i, fl in enumerate(args.files):
-        log(f"processing file: {fl}")
+        log.info(f"processing file: {fl}")
 
         if args.use_tests:
             greyimg = testimages.strtofunc[fl]()
@@ -210,69 +227,15 @@ def main():
         colourimg = colourimg.astype(np.int64)
         greyimg = greyimg.astype(np.int64)
 
-        log("processing image")
+        log.info("processing image")
 
         plt.figure(i + 1)
-        if args.print_performance and haspapi:
-            try:
-                high.start_counters([events.PAPI_FP_OPS])
-                methods.strtofunc[args.method](args, colourimg, greyimg)
-                fp = high.stop_counters()
+        hasfigure |= plotall(*methods.strtofunc[args.method](args, colourimg, greyimg))
 
-                timebeg = time.process_time()
-                plots = methods.strtofunc[args.method](args, colourimg, greyimg)
-                timeend = time.process_time()
-
-                log(
-                    f"FLO: {fp[0]}",
-                    f"FLOPS: {fp[0] / (timeend - timebeg)}",
-                    f"process time: {timeend - timebeg}",
-                )
-            except:
-                try:
-                    log(
-                        "PAPI_FP_OPS unavailable. "
-                        + "FLO/FLOPS will be estimated using PAPI_SP_OPS and PAPI_DP_OPS."
-                    )
-
-                    high.start_counters([events.PAPI_DP_OPS])
-                    methods.strtofunc[args.method](args, colourimg, greyimg)
-                    dp = high.stop_counters()
-
-                    high.start_counters([events.PAPI_SP_OPS])
-                    methods.strtofunc[args.method](args, colourimg, greyimg)
-                    sp = high.stop_counters()
-
-                    timebeg = time.process_time()
-                    plots = methods.strtofunc[args.method](args, colourimg, greyimg)
-                    timeend = time.process_time()
-
-                    log(
-                        f"FLO: {np.sum([dp, sp])}",
-                        f"FLOPS: {np.sum([dp, sp]) / (timeend - timebeg)}",
-                        f"process time: {timeend - timebeg}",
-                    )
-                except:
-                    log(
-                        "PAPI_SP_OPS or PAPI_DP_OPS unavailable. "
-                        + "FLO/FLOPS will be omitted."
-                    )
-
-                    timebeg = time.process_time()
-                    plots = methods.strtofunc[args.method](args, colourimg, greyimg)
-                    timeend = time.process_time()
-
-                    log(f"process time: {timeend - timebeg}")
-        elif args.print_performance:
-            log("performance statistics requested but pypapi is not available.")
-
-            timebeg = time.process_time()
-            plots = methods.strtofunc[args.method](args, colourimg, greyimg)
-            timeend = time.process_time()
-        else:
-            plots = methods.strtofunc[args.method](args, colourimg, greyimg)
-
-        hasfigure |= plotall(*plots)
+        log.info("benchmarking performance")
+        benchmark.benchmark(
+            args, methods.strtofunc[args.method], (args, colourimg, greyimg)
+        )
 
         if args.save:
             plt.savefig(f"{args.method}_{fl}.pdf", bbox_inches="tight")
@@ -280,11 +243,11 @@ def main():
         if i != nfl:
             print()
 
-    if not args.save:
+    if not args.noop and not args.save:
         if hasfigure:
             plt.show()
         else:
-            log("no figure to show")
+            log.info("no figure to show")
 
 
 if __name__ == "__main__":
