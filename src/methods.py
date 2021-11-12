@@ -47,9 +47,11 @@ def kapur1dv(args, colourimg, greyimg):
         if entropy > entropymax:
             entropymax, threshold = entropy, i
 
-    log(f"entropy: {entropy}")
-    log(f"threshold: {threshold}")
-    log(f"entropy ratio: {entropy / 8.0}")
+    log(
+        f"entropy: {entropy}",
+        f"threshold: {threshold}",
+        f"entropy ratio: {entropy / 8.0}",
+    )
 
     entimg = np.where(greyimg < threshold, greyimg, 0)
 
@@ -65,8 +67,10 @@ def shannon1d(args, colourimg, greyimg):
     value, counts = np.unique(greyimg.flatten(), return_counts=True)
     entropy = spentropy(counts, base=2)
 
-    log(f"entropy: {entropy}")
-    log(f"entropy ratio: {entropy / 8.0}")
+    log(
+        f"entropy: {entropy}",
+        f"entropy ratio: {entropy / 8.0}",
+    )
 
     return (entropy, None, None, None)
 
@@ -107,8 +111,10 @@ def delentropy2d(args, colourimg, greyimg):
     entropy /= 2  # 4.3 Papoulis generalized sampling halves the delentropy
 
     # TODO: entropy is different from `sipp` and the paper, but very similar
-    log(f"entropy: {entropy}")
-    log(f"entropy ratio: {entropy / 8.0}")
+    log(
+        f"entropy: {entropy}",
+        f"entropy ratio: {entropy / 8.0}",
+    )
 
     # the reference image seems to be bitwise inverted, I don't know why.
     # the entropy doesn't change when inverted, so both are okay in
@@ -156,8 +162,10 @@ def delentropynd(args, colourimg, greyimg):
     entropy = np.sum(deldensity)
     entropy /= 2  # 4.3 Papoulis generalized sampling halves the delentropy
 
-    log(f"entropy: {entropy}")
-    log(f"entropy ratio: {entropy / 8.0}")
+    log(
+        f"entropy: {entropy}",
+        f"entropy ratio: {entropy / 8.0}",
+    )
 
     # the reference image seems to be bitwise inverted, I don't know why.
     # the entropy doesn't change when inverted, so both are okay in
@@ -209,8 +217,10 @@ def delentropy2dv(args, colourimg, greyimg):
     entropy = np.sum(deldensity)
     entropy /= 2  # 4.3 Papoulis generalized sampling halves the delentropy
 
-    log(f"entropy: {entropy}")
-    log(f"entropy ratio: {entropy / 8.0}")
+    log(
+        f"entropy: {entropy}",
+        f"entropy ratio: {entropy / 8.0}",
+    )
 
     # the reference image seems to be bitwise inverted, I don't know why.
     # the entropy doesn't change when inverted, so both are okay in
@@ -253,8 +263,10 @@ def delentropyndv(args, colourimg, greyimg):
     entropy = np.sum(deldensity)
     entropy /= 2  # 4.3 Papoulis generalized sampling halves the delentropy
 
-    log(f"entropy: {entropy}")
-    log(f"entropy ratio: {entropy / 8.0}")
+    log(
+        f"entropy: {entropy}",
+        f"entropy ratio: {entropy / 8.0}",
+    )
 
     # the reference image seems to be bitwise inverted, I don't know why.
     # the entropy doesn't change when inverted, so both are okay in
@@ -281,8 +293,10 @@ def scikit2dr(args, colourimg, greyimg):
     entimg = skentropy(greyimg.astype(np.uint8), skdisk(args.radius))
     entropy = entimg.mean()
 
-    log(f"entropy: {entropy}")
-    log(f"entropy ratio: {entropy / 8.0}")
+    log(
+        f"entropy: {entropy}",
+        f"entropy ratio: {entropy / 8.0}",
+    )
 
     return (
         entropy,
@@ -318,7 +332,9 @@ def shannon2dr(args, colourimg, greyimg):
     # TODO: The average should not be used in latter computations.
     #       This is just to show.
     entropyavg = np.average(entropies)
-    log(f"entropy = {entropyavg} ± {np.std(entropies)}")
+    log(
+        f"entropy = {entropyavg} ± {np.std(entropies)}",
+    )
 
     return (
         entropyavg,

@@ -215,8 +215,9 @@ def main():
             plots = methods.strtofunc[args.method](args, colourimg, greyimg)
             sp = high.stop_counters()
             timeend = time.process_time()
-            print(
-                f"FLO: {np.sum([dp, sp])}\nFLOPS: {np.sum([dp, sp]) / (timeend - timebeg)}"
+            log(
+                f"FLO: {np.sum([dp, sp])}",
+                f"FLOPS: {np.sum([dp, sp]) / (timeend - timebeg)}",
             )
         else:
             plots = methods.strtofunc[args.method](args, colourimg, greyimg)
