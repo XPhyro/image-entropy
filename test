@@ -9,7 +9,7 @@ for s in d.keys():
 )"
 
 printf "%s\n" "$methods" | while IFS= read -r method; do
-    src/main.py --method="$method" "${@:-"data/barbara.png"}" &
+    eval src/main.py --method="$method" "${@:-"data/barbara.png"}"
 done
 
 wait
