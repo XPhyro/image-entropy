@@ -218,6 +218,7 @@ def main():
             log(
                 f"FLO: {np.sum([dp, sp])}",
                 f"FLOPS: {np.sum([dp, sp]) / (timeend - timebeg)}",
+                f"process time: {timeend - timebeg}",
             )
         else:
             plots = methods.strtofunc[args.method](args, colourimg, greyimg)
