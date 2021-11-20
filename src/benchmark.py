@@ -31,9 +31,9 @@ def measurepapi(event, count, func, funcargs):
     for i in range(count):
         high.start_counters([event])
         func(*funcargs)
-        measure += high.stop_counters()[0] / count
+        measure += high.stop_counters()[0]
 
-    return measure
+    return measure / count
 
 
 def benchmark(args, func, funcargs):
