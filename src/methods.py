@@ -27,7 +27,7 @@ from skimage.morphology import disk as skdisk
 import cv2 as cv
 import numpy as np
 
-import log
+from . import log
 
 
 def kapur1dv(args, colourimg, greyimg):

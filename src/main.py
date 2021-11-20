@@ -11,10 +11,10 @@ from matplotlib import pyplot as plt
 import cv2 as cv
 import numpy as np
 
-import log
-import benchmark
-import methods
-import testimages
+from . import log
+from . import benchmark
+from . import methods
+from . import testimages
 
 
 def parseargs():
