@@ -33,7 +33,7 @@ def measurepapi(event, count, func, funcargs):
         func(*funcargs)
         measure += high.stop_counters()[0]
 
-    return measure / count
+    return measure // count
 
 
 def benchmark(args, func, funcargs):
