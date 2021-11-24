@@ -2,7 +2,7 @@ import time
 
 import numpy as np
 
-from . import log
+import log
 
 
 try:
