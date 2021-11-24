@@ -1,4 +1,4 @@
-from sys import argv
+from sys import argv, stdout, stderr
 
 
 execname = argv[0]
@@ -6,6 +6,41 @@ execname = argv[0]
 infoenabled = True
 warnenabled = True
 errenabled = True
+
+spongeout = False
+spongeerr = False
+outcache = ""
+errcache = ""
+
+
+def _print(msg, file=stdout, end="\n"):
+    global outcache, errcache
+
+    assert file == stdout or file == stderr
+
+    if file == stdout:
+        if spongeout:
+            outcache += msg + "\n"
+        else:
+            if outcache:
+                print(outcache, end="")
+                outcache = ""
+            print(msg, file=file, end=end)
+    elif spongeerr:
+        errcache += msg + "\n"
+    else:
+        if errcache:
+            print(errcache, end="")
+            errcache = ""
+        print(msg, file=file, end=end)
+
+
+def dumpcaches():
+    global spongeout, spongeerr
+
+    spongeout = spongeerr = False
+    _print("", file=stdout, end="")
+    _print("", file=stderr, end="")
 
 
 def info(*msgs):
@@ -42,7 +77,7 @@ def info(*msgs):
         return
 
     for msg in msgs:
-        print(f"{execname}: {msg}")
+        _print(f"{execname}: {msg}")
 
 
 def warn(*msgs):
@@ -79,7 +114,7 @@ def warn(*msgs):
         return
 
     for msg in msgs:
-        print(f"{execname}: {msg}")
+        _print(f"{execname}: {msg}", file=stderr)
 
 
 def err(*msgs):
@@ -116,4 +151,4 @@ def err(*msgs):
         return
 
     for msg in msgs:
-        print(f"{execname}: {msg}")
+        _print(f"{execname}: {msg}", file=stderr)

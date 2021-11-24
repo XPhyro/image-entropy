@@ -47,6 +47,13 @@ def parseargs():
     )
 
     parser.add_argument(
+        "-l",
+        "--latex",
+        help="output latex table rows for performance benchmarks",
+        action="store_true",
+    )
+
+    parser.add_argument(
         "-m",
         "--method",
         help=f"method to use.",
@@ -94,6 +101,18 @@ def parseargs():
         "-s",
         "--save",
         help=f"save the plots instead of showing",
+        action="store_true",
+    )
+
+    parser.add_argument(
+        "--sponge-out",
+        help=f"batch print to stdout at the end",
+        action="store_true",
+    )
+
+    parser.add_argument(
+        "--sponge-err",
+        help=f"batch print to stderr at the end",
         action="store_true",
     )
 
@@ -200,6 +219,9 @@ def plotall(entropy, colourimg, greyimg, plots):
 def main():
     parseargs()
 
+    log.spongeout = args.sponge_out
+    log.spongeerr = args.sponge_err
+
     if args.save_tests is not None:
         for s, f in testimages.strtofunc.items():
             cv.imwrite(f"{args.save_tests}/{s}.png", f())
@@ -243,13 +265,17 @@ def main():
             plt.savefig(f"{args.method}_{fl}.pdf", bbox_inches="tight")
 
         if i != nfl:
-            print()
+            log._print("", end="")
 
     if not args.noop and not args.save:
         if hasfigure:
+            log.dumpcaches()
             plt.show()
         else:
             log.info("no figure to show")
+            log.dumpcaches()
+    else:
+        log.dumpcaches()
 
 
 if __name__ == "__main__":

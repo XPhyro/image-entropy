@@ -174,13 +174,20 @@ def benchmark(args, func, funcargs):
 
         log.infoenabled = True
 
-        log.info(
-            f"FLO................: {fp}",
-            f"VO.................: {vp}",
-            f"FLOPS..............: {fp / cputime}",
-            f"VOPS...............: {vp / cputime}",
-            f"FLOPC..............: {fp / cyc}",
-            f"VOPC...............: {vp / cyc}",
-            f"process time.......: {cputime}",
-            f"processor cycles...: {cyc}",
-        )
+        if args.latex:
+            log.info(
+                "FLO & VO & FLOPS & VOPS & FLOPC & VOPC & PT & PC \\\\",
+                f"{fp} & {vp} & {fp / cputime} & {vp / cputime} & "
+                + f"{fp / cyc} & {vp / cyc} & {cputime} & {cyc} \\\\",
+            )
+        else:
+            log.info(
+                f"FLO................: {fp}",
+                f"VO.................: {vp}",
+                f"FLOPS..............: {fp / cputime}",
+                f"VOPS...............: {vp / cputime}",
+                f"FLOPC..............: {fp / cyc}",
+                f"VOPC...............: {vp / cyc}",
+                f"process time.......: {cputime}",
+                f"processor cycles...: {cyc}",
+            )
