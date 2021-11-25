@@ -96,6 +96,18 @@ def _measurepapi(event, count, func, funcargs):
     return measure // count
 
 
+def _measureproctime(count, func, funcargs):
+    tmp = log.infoenabled
+    log.infoenabled = False
+    cputime = 0
+    for i in range(count):
+        timenow = time.process_time()
+        func(*funcargs)
+        cputime += time.process_time() - timenow
+    log.infoenabled = tmp
+    return cputime / count
+
+
 def benchmark(args, func, funcargs):
     """
     Benchmark the given function and arguments using various events.
@@ -131,21 +143,20 @@ def benchmark(args, func, funcargs):
     if not args.print_performance:
         return
 
+    count = args.performance_count
     if not haspapi:
         log.warn(
             "performance statistics requested but pypapi is not available. "
             + "only process time will be benchmarked."
         )
-
-        log.infoenabled = False
-        timebeg = time.process_time()
-        func(*funcargs)
-        timeend = time.process_time()
-        log.infoenabled = True
+        cputime = _measureproctime(count, func, funcargs)
+        if args.latex:
+            log.info("PT \\\\", f"{cputime} \\\\")
+        else:
+            log.info(f"process time.......: {cputime}")
     else:
+        tmp = log.infoenabled
         log.infoenabled = False
-
-        count = args.performance_count
 
         if _checkevent(events.PAPI_FP_OPS):
             fp = _measurepapi(events.PAPI_FP_OPS, count, func, funcargs)
@@ -168,24 +179,22 @@ def benchmark(args, func, funcargs):
         )
         cyc = _measurepapi(events.PAPI_REF_CYC, count, func, funcargs)
 
-        cputime = time.process_time()
-        func(*funcargs)
-        cputime = time.process_time() - cputime
+        cputime = _measureproctime(count, func, funcargs)
 
-        log.infoenabled = True
+        log.infoenabled = tmp
 
         if args.latex:
             log.info(
                 "FLO & VO & FLOPS & VOPS & FLOPC & VOPC & PT & PC \\\\",
-                f"{fp} & {vp} & {fp / cputime} & {vp / cputime} & "
+                f"{fp} & {vp} & {fp // cputime} & {vp // cputime} & "
                 + f"{fp / cyc} & {vp / cyc} & {cputime} & {cyc} \\\\",
             )
         else:
             log.info(
                 f"FLO................: {fp}",
                 f"VO.................: {vp}",
-                f"FLOPS..............: {fp / cputime}",
-                f"VOPS...............: {vp / cputime}",
+                f"FLOPS..............: {fp // cputime}",
+                f"VOPS...............: {vp // cputime}",
                 f"FLOPC..............: {fp / cyc}",
                 f"VOPC...............: {vp / cyc}",
                 f"process time.......: {cputime}",
