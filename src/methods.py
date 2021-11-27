@@ -85,9 +85,6 @@ def delentropy2d(args, colourimg, greyimg):
     fx = fx[1:-1, :]
     fy = fy[:, 1:-1]
 
-    # TODO: is this how fx and fy are combined?
-    #       it's for plotting and not used in computation anyways,
-    #       and it matches the image in the paper.
     grad = fx + fy
 
     # ensure $-255 \leq J \leq 255$
@@ -110,7 +107,6 @@ def delentropy2d(args, colourimg, greyimg):
 
     entropy /= 2  # 4.3 Papoulis generalized sampling halves the delentropy
 
-    # TODO: entropy is different from `sipp` and the paper, but very similar
     log.info(
         f"entropy: {entropy}",
         f"entropy ratio: {entropy / 8.0}",
@@ -192,9 +188,6 @@ def delentropy2dv(args, colourimg, greyimg):
     fx = grad[0].astype(int)
     fy = grad[1].astype(int)
 
-    # TODO: is this how fx and fy are combined?
-    #       it's for plotting and not used in computation anyways,
-    #       and it matches the image in the paper.
     grad = fx + fy
 
     # ensure $-255 \leq J \leq 255$
@@ -329,8 +322,7 @@ def shannon2dr(args, colourimg, greyimg):
             entropies.append(entropy)
             entimg[i, j] = entropy
 
-    # TODO: The average should not be used in latter computations.
-    #       This is just to show.
+    # the average should not be used in latter computations, it's just for printing
     entropyavg = np.average(entropies)
     log.info(
         f"entropy = {entropyavg} ± {np.std(entropies)}",
