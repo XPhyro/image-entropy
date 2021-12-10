@@ -32,6 +32,14 @@ def parseargs():
     )
 
     parser.add_argument(
+        "-I",
+        "--image-size",
+        help=f"test image size",
+        type=int,
+        default=1024,
+    )
+
+    parser.add_argument(
         "-i",
         "--no-input-image",
         help=f"do not display input image on plot.",
@@ -238,7 +246,7 @@ def main():
         log.info(f"processing file: {fl}")
 
         if args.use_tests:
-            greyimg = testimages.strtofunc[fl]()
+            greyimg = testimages.strtofunc[fl](*((args.image_size,) * 2))
             colourimg = cv.cvtColor(greyimg, cv.COLOR_GRAY2RGB)  # for plotting
         else:
             inputimg = cv.imread(fl)

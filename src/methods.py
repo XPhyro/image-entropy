@@ -20,6 +20,7 @@
 
 
 from copy import deepcopy as duplicate
+from operator import itemgetter
 
 from scipy.stats import entropy as spentropy
 from skimage.filters.rank import entropy as skentropy
@@ -233,6 +234,72 @@ def delentropy2dv(args, colourimg, greyimg):
     )
 
 
+def delentropy2dvc(args, colourimg, greyimg):
+    # TODO
+    ### 1609.01117 page 10
+
+    grad = np.gradient(greyimg)
+    fx = grad[0].astype(int)
+    fy = grad[1].astype(int)
+
+    grad = fx + fy
+
+    # ensure $-255 \leq J \leq 255$
+    jrng = np.max([np.max(np.abs(fx)), np.max(np.abs(fy))])
+    assert jrng <= 255, "J must be in range [-255, 255]"
+
+    ### 1609.01117 page 16
+
+    hist, edgex, edgey = np.histogram2d(
+        fx.flatten(),
+        fy.flatten(),
+        bins=255,
+        range=[[-jrng, jrng], [-jrng, jrng]],
+    )
+
+    ### 1609.01117 page 22
+
+    deldensity = hist / np.sum(hist)
+    deldensity = deldensity * -np.ma.log2(deldensity)
+    deldensity /= 2  # 4.3 Papoulis generalized sampling halves the delentropy
+
+    subshape = (args.kernel_size,) * 2
+    viewshape = tuple(np.subtract(deldensity.shape, subshape) + 1) + subshape
+    strides = deldensity.strides * 2
+    kerns = np.lib.stride_tricks.as_strided(deldensity, viewshape, strides)
+
+    kernsshape = itemgetter(0, 1)(kerns.shape)
+    kerndensity = np.empty(kernsshape)
+    for i in range(kernsshape[0]):
+        for j in range(kernsshape[1]):
+            kerndensity[i][j] = np.sum(kerns[i][j])
+
+    entropy = np.sum(deldensity)
+
+    log.info(
+        f"entropy: {entropy}",
+        f"entropy ratio: {entropy / 8.0}",
+    )
+
+    # the reference image seems to be bitwise inverted, I don't know why.
+    # the entropy doesn't change when inverted, so both are okay in
+    # the previous computational steps.
+    param_invert = True
+
+    gradimg = np.invert(grad) if param_invert else grad
+
+    return (
+        entropy,
+        colourimg,
+        greyimg,
+        [
+            (gradimg, "Gradient", ["hasbar"]),
+            (deldensity, "Deldensity", ["hasbar"]),
+            (kerndensity, "Kernelised Deldensity", ["hasbar"]),
+        ],
+    )
+
+
 def delentropyndv(args, colourimg, greyimg):
     ### 1609.01117 page 10
 
@@ -349,6 +416,7 @@ strtofunc = {
     "2d-delentropy-ndim": delentropynd,
     "2d-delentropy-variation": delentropy2dv,
     "2d-delentropy-variation-ndim": delentropyndv,
+    "2d-delentropy-variation-cnn": delentropy2dvc,
     "2d-regional-scikit": scikit2dr,
     "2d-regional-shannon": shannon2dr,
 }
