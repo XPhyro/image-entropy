@@ -20,7 +20,6 @@
 
 
 from copy import deepcopy as duplicate
-from operator import itemgetter
 
 from scipy.stats import entropy as spentropy
 from skimage.filters.rank import entropy as skentropy
