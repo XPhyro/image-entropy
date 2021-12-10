@@ -28,8 +28,7 @@ def parseargs():
         "-g",
         "--no-grey-image",
         help=f"do not display greyscale image on plot.",
-        action="append_const",
-        const=None,
+        action="store_true",
     )
 
     parser.add_argument(
@@ -44,8 +43,7 @@ def parseargs():
         "-i",
         "--no-input-image",
         help=f"do not display input image on plot.",
-        action="append_const",
-        const=None,
+        action="store_true",
     )
 
     parser.add_argument(
@@ -186,7 +184,7 @@ def plotall(entropy, colourimg, greyimg, plots):
 
     log.info("preparing figure")
 
-    imgoffset = -int(len(args.no_input_image) % 2) - int(len(args.no_grey_image) % 2)
+    imgoffset = -int(args.no_input_image) - int(args.no_grey_image)
     nimg = len(plots) + 2 + imgoffset
     if nimg == 1:
         nx = 1
@@ -195,7 +193,7 @@ def plotall(entropy, colourimg, greyimg, plots):
         nx = nimg // 2
         ny = math.ceil(nimg / (nimg // 2))
 
-    if not len(args.no_input_image) % 2:
+    if not args.no_input_image:
         plt.subplot(nx, ny, 1)
         if colourimg.shape == greyimg.shape and np.all(colourimg == greyimg):
             plt.imshow(colourimg, cmap=plt.cm.gray)
@@ -203,7 +201,7 @@ def plotall(entropy, colourimg, greyimg, plots):
             plt.imshow(colourimg)
         plt.title(f"Input Image")
 
-    if not len(args.no_grey_image) % 2:
+    if not args.no_grey_image:
         plt.subplot(nx, ny, 2 + imgoffset)
         plt.imshow(greyimg, cmap=plt.cm.gray)
         plt.title(f"Greyscale Image")
