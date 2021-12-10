@@ -20,8 +20,11 @@
 
 
 from copy import deepcopy as duplicate
+from itertools import groupby
+from operator import itemgetter
 
-from scipy.stats import entropy as spentropy
+import scipy.stats as stats
+from scipy.ndimage.filters import gaussian_filter
 from skimage.filters.rank import entropy as skentropy
 from skimage.morphology import disk as skdisk
 import cv2 as cv
@@ -65,7 +68,7 @@ def kapur1dv(args, colourimg, greyimg):
 
 def shannon1d(args, colourimg, greyimg):
     value, counts = np.unique(greyimg.flatten(), return_counts=True)
-    entropy = spentropy(counts, base=2)
+    entropy = stats.entropy(counts, base=2)
 
     log.info(
         f"entropy: {entropy}",
@@ -273,6 +276,28 @@ def delentropy2dvc(args, colourimg, greyimg):
             deldensity.strides * 2,
         ),
     )
+    kerngrad = np.einsum(
+        "ijkl->ij",
+        np.lib.stride_tricks.as_strided(
+            grad,
+            tuple(np.subtract(grad.shape, kernshape) + 1) + kernshape,
+            grad.strides * 2,
+        ),
+    )
+
+    mu = 0.99
+    roigrad = np.abs(kerngrad)
+    roigradflat = roigrad.flatten()
+    mean = np.mean(roigrad)
+    roigradbound = (
+        mean,
+        *stats.t.interval(
+            mu, len(roigradflat) - 1, loc=mean, scale=stats.sem(roigradflat)
+        ),
+    )
+    roigrad = roigrad.astype(float)
+    roigrad[roigrad < roigradbound[2]] = 0
+    roigrad /= np.linalg.norm(roigrad)
 
     entropy = np.sum(halfdeldensity)
 
@@ -281,21 +306,21 @@ def delentropy2dvc(args, colourimg, greyimg):
         f"entropy ratio: {entropy / 8.0}",
     )
 
-    # the reference image seems to be bitwise inverted, I don't know why.
-    # the entropy doesn't change when inverted, so both are okay in
-    # the previous computational steps.
-    param_invert = True
-
-    gradimg = np.invert(grad) if param_invert else grad
-
     return (
         entropy,
         colourimg,
         greyimg,
         [
-            (gradimg, "Gradient", ["hasbar"]),
+            (grad, "Gradient", ["hasbar"]),
+            (kerngrad, "Convolved Gradient", ["hasbar"]),
             (deldensity, "Deldensity", ["hasbar"]),
             (kerndensity, "Convolved Deldensity", ["hasbar"]),
+            (roigrad, "Regions of Interest", ["hasbar"]),
+            (
+                gaussian_filter(roigrad, sigma=7),
+                "Blurred Regions of Interest",
+                ["hasbar"],
+            ),
         ],
     )
 
