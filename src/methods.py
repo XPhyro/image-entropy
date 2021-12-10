@@ -261,20 +261,21 @@ def delentropy2dvc(args, colourimg, greyimg):
 
     deldensity = hist / np.sum(hist)
     deldensity = deldensity * -np.ma.log2(deldensity)
-    deldensity /= 2  # 4.3 Papoulis generalized sampling halves the delentropy
+    halfdeldensity = (
+        deldensity / 2
+    )  # 4.3 Papoulis generalized sampling halves the delentropy
 
-    subshape = (args.kernel_size,) * 2
-    viewshape = tuple(np.subtract(deldensity.shape, subshape) + 1) + subshape
-    strides = deldensity.strides * 2
-    kerns = np.lib.stride_tricks.as_strided(deldensity, viewshape, strides)
+    kernshape = (args.kernel_size,) * 2
+    kerndensity = np.einsum(
+        "ijkl->ij",
+        np.lib.stride_tricks.as_strided(
+            deldensity,
+            tuple(np.subtract(deldensity.shape, kernshape) + 1) + kernshape,
+            deldensity.strides * 2,
+        ),
+    )
 
-    kernsshape = itemgetter(0, 1)(kerns.shape)
-    kerndensity = np.empty(kernsshape)
-    for i in range(kernsshape[0]):
-        for j in range(kernsshape[1]):
-            kerndensity[i][j] = np.sum(kerns[i][j])
-
-    entropy = np.sum(deldensity)
+    entropy = np.sum(halfdeldensity)
 
     log.info(
         f"entropy: {entropy}",
@@ -295,7 +296,7 @@ def delentropy2dvc(args, colourimg, greyimg):
         [
             (gradimg, "Gradient", ["hasbar"]),
             (deldensity, "Deldensity", ["hasbar"]),
-            (kerndensity, "Kernelised Deldensity", ["hasbar"]),
+            (kerndensity, "Convolved Deldensity", ["hasbar"]),
         ],
     )
 
