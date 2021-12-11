@@ -1,5 +1,4 @@
 # Bugs
-- `1d-shannon` does not work correctly.
 
 # Features
 - Evaluate the entropy on each colour channel, then join the results.
@@ -10,6 +9,7 @@
   - `2d-weighted-kapur`: Same as `2d-weighted-kapur`, but in two dimensions.
   - `2d-regional-delentropy`: Same as `2d-delentropy`, but using kernels.
 - Add a rotated gradient test image.
+- Add command-line options for `mu` and `sigma` in `delentropy2dvc`.
 
 # Refactor / Rework / Optimisation
 - Optimise `2d-regional-shannon`. Ideally, it would be consistent of only library code instead of Python loops.
