@@ -299,6 +299,9 @@ def delentropy2dvc(args, colourimg, greyimg):
     roigrad[roigrad < roigradbound[2]] = 0
     roigrad /= np.linalg.norm(roigrad)
 
+    sigma = 7
+    roigradblurred = gaussian_filter(roigrad, sigma=sigma)
+
     entropy = np.sum(halfdeldensity)
 
     log.info(
@@ -311,16 +314,12 @@ def delentropy2dvc(args, colourimg, greyimg):
         colourimg,
         greyimg,
         [
-            (grad, "Gradient", ["hasbar"]),
-            (kerngrad, "Convolved Gradient", ["hasbar"]),
-            (deldensity, "Deldensity", ["hasbar"]),
-            (kerndensity, "Convolved Deldensity", ["hasbar"]),
-            (roigrad, "Regions of Interest", ["hasbar"]),
-            (
-                gaussian_filter(roigrad, sigma=7),
-                "Blurred Regions of Interest",
-                ["hasbar"],
-            ),
+            (grad, "Gradient", ["hasbar", "forcecolour"]),
+            (kerngrad, "Convolved Gradient", ["hasbar", "forcecolour"]),
+            (deldensity, "Deldensity", ["hasbar", "forcecolour"]),
+            (kerndensity, "Convolved Deldensity", ["hasbar", "forcecolour"]),
+            (roigrad, "Regions of Interest", ["hasbar", "forcecolour"]),
+            (roigradblurred, "Blurred Regions of Interest", ["hasbar", "forcecolour"]),
         ],
     )
 
