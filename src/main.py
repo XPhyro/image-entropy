@@ -192,6 +192,8 @@ def plotall(entropy, colourimg, greyimg, plots):
     else:
         nx = nimg // 2
         ny = math.ceil(nimg / (nimg // 2))
+        if nx > ny:
+            nx, ny = ny, nx
 
     if not args.no_input_image:
         plt.subplot(nx, ny, 1)
