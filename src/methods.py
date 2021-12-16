@@ -236,7 +236,7 @@ def delentropy2dv(args, colourimg, greyimg):
     )
 
 
-def delentropy2dvc(args, colourimg, greyimg):
+def gradient2dc(args, colourimg, greyimg):
     # TODO
     ### 1609.01117 page 10
 
@@ -320,6 +320,51 @@ def delentropy2dvc(args, colourimg, greyimg):
             (kerndensity, "Convolved Deldensity", ["hasbar", "forcecolour"]),
             (roigrad, "Regions of Interest", ["hasbar", "forcecolour"]),
             (roigradblurred, "Blurred Regions of Interest", ["hasbar", "forcecolour"]),
+        ],
+    )
+
+
+def delentropy2dvc(args, colourimg, greyimg):
+    kernshape = (args.kernel_size,) * 2
+    kerns = np.lib.stride_tricks.as_strided(
+        greyimg,
+        tuple(np.subtract(greyimg.shape, kernshape) + 1) + kernshape,
+        greyimg.strides * 2,
+    )
+    kernent = []
+
+    for i in kerns:
+        for j in i:
+            grad = np.gradient(i)
+            fx = grad[0].astype(int)
+            fy = grad[1].astype(int)
+
+            grad = fx + fy
+
+            jrng = np.max([np.max(np.abs(fx)), np.max(np.abs(fy))])
+            assert jrng <= 255, "J must be in range [-255, 255]"
+
+            hist, edgex, edgey = np.histogram2d(
+                fx.flatten(),
+                fy.flatten(),
+                bins=255,
+                range=[[-jrng, jrng], [-jrng, jrng]],
+            )
+
+            deldensity = hist / np.sum(hist)
+            deldensity = deldensity * -np.ma.log2(deldensity)
+            entropy = np.sum(deldensity)
+            entropy /= 2
+            kernent.append(entropy)
+
+    kernent = np.reshape(kernent, itemgetter(0, 1)(kerns.shape))
+
+    return (
+        np.mean(kernent),
+        colourimg,
+        greyimg,
+        [
+            (kernent, "Kernelised Delentropy", ["hasbar", "forcecolour"]),
         ],
     )
 
@@ -440,6 +485,7 @@ strtofunc = {
     "2d-delentropy-ndim": delentropynd,
     "2d-delentropy-variation": delentropy2dv,
     "2d-delentropy-variation-ndim": delentropyndv,
+    "2d-gradient-cnn": gradient2dc,
     "2d-delentropy-variation-cnn": delentropy2dvc,
     "2d-regional-scikit": scikit2dr,
     "2d-regional-shannon": shannon2dr,
