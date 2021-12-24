@@ -1,6 +1,16 @@
-# Bugs
+# Development
 
-# Features
+## Features
+- Automatically determine sigma.
+- Automatically determine mu.
+- Automatically determine kernel size.
+
+
+# Research
+
+## Bugs
+
+## Features
 - Evaluate the entropy on each colour channel, then join the results.
 - In `1d-kapur`, execute the threshold multiple times and get an iterative entropy image. Then, plot it instead of the threshold image.
 - Implement different methods.
@@ -11,10 +21,13 @@
 - Add a rotated gradient test image.
 - Add command-line options for `mu` and `sigma` in `delentropy2dvc`.
 
-# Refactor / Rework / Optimisation
+## Refactor / Rework / Optimisation
 - Optimise `2d-regional-shannon`. Ideally, it would be consistent of only library code instead of Python loops.
 
-# Other
+## Other
 - Write a function that *regional*ises methods.
+
+
+# All
 - Add a `CITATION.cff` file.
 - Add a readme.
