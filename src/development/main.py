@@ -2,12 +2,15 @@
 # See `./main.py --help`.
 
 
+from datetime import datetime as dt
 import argparse
+import json
 import multiprocessing as mp
 import os
 import sys
 import time
 
+from pycocotools import mask as coco
 from scipy.ndimage.filters import gaussian_filter
 import cv2 as cv
 import numpy as np
@@ -82,7 +85,10 @@ def argtypeposfloat(val):
     return fval
 
 
-def processmain(fl):
+def processmain(data):
+    idx, fl = data
+    idx += 1
+
     ### read
 
     inputimg = cv.imread(fl)
@@ -111,16 +117,6 @@ def processmain(fl):
     jrng = np.max([np.max(np.abs(fx)), np.max(np.abs(fy))])
     assert jrng <= 255, "J must be in range [-255, 255]"
 
-    kernshape = (args.kernel_size,) * 2
-    kerngrad = np.einsum(
-        "ijkl->ij",
-        np.lib.stride_tricks.as_strided(
-            grad,
-            tuple(np.subtract(grad.shape, kernshape) + 1) + kernshape,
-            grad.strides * 2,
-        ),
-    )
-
     roigrad = np.abs(grad)
     roigradflat = roigrad.flatten()
     mean = np.mean(roigrad)
@@ -134,59 +130,39 @@ def processmain(fl):
     roigrad[np.nonzero(roigrad)] = 255
 
     roigradblurred = gaussian_filter(roigrad, sigma=args.sigma)
-    roigradblurred[np.nonzero(roigradblurred)] = 255
+    roigradblurred[np.nonzero(roigradblurred)] = 1
 
-    roikerngrad = np.abs(grad)
-    roikerngradflat = roikerngrad.flatten()
-    mean = np.mean(roigrad)
-    roikerngradbound = (
-        mean,
-        *stats.t.interval(
-            args.mu,
-            len(roikerngradflat) - 1,
-            loc=mean,
-            scale=stats.sem(roikerngradflat),
-        ),
-    )
-    roikerngrad[roikerngrad < roikerngradbound[2]] = 0
-    roikerngrad[np.nonzero(roikerngrad)] = 255
+    entmask = np.asfortranarray(roigradblurred).astype(np.uint8)
 
-    roikerngradblurred = gaussian_filter(roikerngrad, sigma=args.sigma)
-    roikerngradblurred[np.nonzero(roikerngradblurred)] = 255
+    segmentation = coco.encode(entmask)
+    size = segmentation["size"]
+    counts = list(segmentation["counts"])
+    area = coco.area(segmentation)
+    bbox = coco.toBbox(segmentation)
 
-    results = (
-        (grad, "gradient"),
-        (kerngrad, "gradient-convolved"),
-        (roigrad, "roi"),
-        (roigradblurred, "roi-blurred"),
-        (roikerngrad, "roi-convolved"),
-        (roikerngradblurred, "roi-convolved-blurred"),
-    )
-
-    ### write
-
-    pathdir = f"{fl}_results"
-
-    try:
-        os.mkdir(pathdir)
-    except FileExistsError:
-        pass
-
-    for r in results:
-        data, name = r
-        path = f"{pathdir}/{name}.png"
-        if os.path.exists(path):
-            os.remove(path)
-        cv.imwrite(path, data)
+    ret = {
+        "id": idx + 1000000000,
+        "category_id": 1,
+        "iscrowd": 1,
+        "segmentation": {
+            "size": size,
+            "counts": counts,
+        },
+        "image_id": idx,
+        "area": float(area),
+        "bbox": list(bbox),
+    }
 
     printerr(f"Done processing file {fl}.")
+
+    return ret
 
 
 def main():
     parseargs()
 
     cpucount = os.cpu_count()
-    processcount = int(cpucount * 13 / 12)
+    processcount = (cpucount * 13) // 12
 
     print(
         "\n\t".join(
@@ -200,11 +176,13 @@ def main():
         )
     )
 
+    print(f"Processing files. {dt.now()}")
+
     timepassed = time.time()
     cputimepassed = time.process_time()
 
     with mp.Pool(processcount) as p:
-        p.map(processmain, args.files)
+        results = p.map(processmain, enumerate(args.files))
 
     cputimepassed = time.process_time() - cputimepassed
     timepassed = time.time() - timepassed
@@ -213,6 +191,61 @@ def main():
         f"Processed {len(args.files)} files in {cputimepassed:.9g}s "
         + f"main process time and {timepassed:.9g}s real time."
     )
+
+    results = list(filter(lambda x: x is not None, results))
+
+    print(f"Generating JSON dictionary. {dt.now()}")
+
+    resultjson = {
+        "info": {
+            "description": "Image Entropy",
+            "url": "https://github.com/XPhyro/image-entropy",
+            "version": "0.1.0",
+            "year": 2021,
+            "contributor": "Berke Kocaoğlu",
+            "date_created": time.strftime("%Y/%m/%d", time.gmtime()),
+        },
+        "licenses": [
+            {
+                "url": "placeholder",
+                "id": 1,
+                "name": "placeholder",
+            },
+        ],
+        "images": [
+            {
+                "id": ifl[0],
+                "license": 1,
+                "coco_url": "placeholder",
+                "flickr_url": "placeholder",
+                "width": r["segmentation"]["size"][0],
+                "height": r["segmentation"]["size"][1],
+                "file_name": ifl[1],
+                "date_captured": "1970-01-01 02:00:00",
+            }
+            for ifl, r in zip(enumerate(args.files), results)
+        ],
+        "annotations": results,
+        "categories": [
+            {
+                "supercategory": "entropy",
+                "id": 1,
+                "name": "high_entropy",
+            },
+        ],
+    }
+
+    print(f"Generating JSON file. {dt.now()}")
+
+    with open("cocoout.json", "w", encoding="utf-8") as f:
+        f.write(
+            json.dumps(
+                resultjson,
+                ensure_ascii=False,
+                indent=0,
+                separators=[",", ":"],
+            ).replace("\n", "")
+        )
 
 
 if __name__ == "__main__":
