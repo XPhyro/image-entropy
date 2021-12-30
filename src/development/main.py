@@ -110,11 +110,31 @@ def gradient2dc(args, colourimg, greyimg):
     roigradblurred = gaussian_filter(roigrad, sigma=args.sigma)
     roigradblurred[np.nonzero(roigradblurred)] = 255
 
+    roikerngrad = np.abs(grad)
+    roikerngradflat = roikerngrad.flatten()
+    mean = np.mean(roigrad)
+    roikerngradbound = (
+        mean,
+        *stats.t.interval(
+            args.mu,
+            len(roikerngradflat) - 1,
+            loc=mean,
+            scale=stats.sem(roikerngradflat),
+        ),
+    )
+    roikerngrad[roikerngrad < roikerngradbound[2]] = 0
+    roikerngrad[np.nonzero(roikerngrad)] = 255
+
+    roikerngradblurred = gaussian_filter(roikerngrad, sigma=args.sigma)
+    roikerngradblurred[np.nonzero(roikerngradblurred)] = 255
+
     return (
         (grad, "gradient"),
         (kerngrad, "gradient-convolved"),
         (roigrad, "roi"),
         (roigradblurred, "roi-blurred"),
+        (roikerngrad, "roi-convolved"),
+        (roikerngradblurred, "roi-convolved-blurred"),
     )
 
 
