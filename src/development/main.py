@@ -5,12 +5,17 @@
 import argparse
 import multiprocessing as mp
 import os
+import sys
 import time
 
 from scipy.ndimage.filters import gaussian_filter
 import cv2 as cv
 import numpy as np
 import scipy.stats as stats
+
+
+def printerr(*args, **kwargs):
+    print(*args, file=sys.stderr, **kwargs)
 
 
 def parseargs():
@@ -83,6 +88,7 @@ def processmain(fl):
     inputimg = cv.imread(fl)
 
     if inputimg is None:  # do not use `not inputimg` for compatibility with arrays
+        printerr(f"Could not read file {fl}.")
         return
 
     colourimg = cv.cvtColor(inputimg, cv.COLOR_BGR2RGB)  # for plotting
@@ -173,16 +179,31 @@ def processmain(fl):
             os.remove(path)
         cv.imwrite(path, data)
 
+    printerr(f"Done processing file {fl}.")
+
 
 def main():
     parseargs()
 
     cpucount = os.cpu_count()
+    processcount = int(cpucount * 13 / 12)
+
+    print(
+        "\n\t".join(
+            [
+                "Using parameters:",
+                f"maximum process count: {processcount}",
+                f"kernel size: {args.kernel_size}",
+                f"sigma: {args.sigma}",
+                f"mu: {args.mu}",
+            ]
+        )
+    )
 
     timepassed = time.time()
     cputimepassed = time.process_time()
 
-    with mp.Pool(int(cpucount * 13 / 12)) as p:
+    with mp.Pool(processcount) as p:
         p.map(processmain, args.files)
 
     cputimepassed = time.process_time() - cputimepassed
