@@ -251,6 +251,8 @@ def main():
             separators=[",", ":"],
         )
 
+    print(f"Done. {dt.now()}")
+
 
 if __name__ == "__main__":
     main()
