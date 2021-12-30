@@ -243,13 +243,12 @@ def main():
     print(f"Generating JSON file. {dt.now()}")
 
     with open("cocoout.json", "w", encoding="utf-8") as f:
-        f.write(
-            json.dumps(
-                resultjson,
-                ensure_ascii=False,
-                indent=0,
-                separators=[",", ":"],
-            ).replace("\n", "")
+        json.dump(
+            resultjson,
+            f,
+            ensure_ascii=False,
+            indent=0,
+            separators=[",", ":"],
         )
 
 
