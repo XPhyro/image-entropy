@@ -3,7 +3,9 @@
 
 
 import argparse
+import multiprocessing as mp
 import os
+import time
 
 from scipy.ndimage.filters import gaussian_filter
 import cv2 as cv
@@ -75,7 +77,25 @@ def argtypeposfloat(val):
     return fval
 
 
-def gradient2dc(args, colourimg, greyimg):
+def processmain(fl):
+    ### read
+
+    inputimg = cv.imread(fl)
+
+    if inputimg is None:  # do not use `not inputimg` for compatibility with arrays
+        return
+
+    colourimg = cv.cvtColor(inputimg, cv.COLOR_BGR2RGB)  # for plotting
+    greyimg = cv.cvtColor(inputimg, cv.COLOR_BGR2GRAY)
+
+    assert greyimg.dtype == np.uint8, "image channel depth must be 8 bits"
+
+    # prevent over/underflows during computation
+    colourimg = colourimg.astype(np.int64)
+    greyimg = greyimg.astype(np.int64)
+
+    ### compute
+
     grad = np.gradient(greyimg)
     fx = grad[0].astype(int)
     fy = grad[1].astype(int)
@@ -128,7 +148,7 @@ def gradient2dc(args, colourimg, greyimg):
     roikerngradblurred = gaussian_filter(roikerngrad, sigma=args.sigma)
     roikerngradblurred[np.nonzero(roikerngradblurred)] = 255
 
-    return (
+    results = (
         (grad, "gradient"),
         (kerngrad, "gradient-convolved"),
         (roigrad, "roi"),
@@ -137,46 +157,41 @@ def gradient2dc(args, colourimg, greyimg):
         (roikerngradblurred, "roi-convolved-blurred"),
     )
 
+    ### write
+
+    pathdir = f"{fl}_results"
+
+    try:
+        os.mkdir(pathdir)
+    except FileExistsError:
+        pass
+
+    for r in results:
+        data, name = r
+        path = f"{pathdir}/{name}.png"
+        if os.path.exists(path):
+            os.remove(path)
+        cv.imwrite(path, data)
+
 
 def main():
     parseargs()
 
-    for fl in args.files:
-        print(f"reading file {fl}")
-        inputimg = cv.imread(fl)
+    cpucount = os.cpu_count()
 
-        if inputimg is None:  # do not use `not inputimg` for compatibility with arrays
-            print(f"could not read file, skipping")
-            continue
+    timepassed = time.time()
+    cputimepassed = time.process_time()
 
-        colourimg = cv.cvtColor(inputimg, cv.COLOR_BGR2RGB)  # for plotting
-        greyimg = cv.cvtColor(inputimg, cv.COLOR_BGR2GRAY)
+    with mp.Pool(int(cpucount * 13 / 12)) as p:
+        p.map(processmain, args.files)
 
-        assert greyimg.dtype == np.uint8, "image channel depth must be 8 bits"
+    cputimepassed = time.process_time() - cputimepassed
+    timepassed = time.time() - timepassed
 
-        # prevent over/underflows during computation
-        colourimg = colourimg.astype(np.int64)
-        greyimg = greyimg.astype(np.int64)
-
-        print(f"processing")
-        results = gradient2dc(args, colourimg, greyimg)
-
-        pathdir = f"{fl}_results"
-        print(f"writing results to {pathdir}/")
-
-        try:
-            os.mkdir(pathdir)
-        except FileExistsError:
-            pass
-
-        for r in results:
-            data, name = r
-            path = f"{pathdir}/{name}.png"
-            if os.path.exists(path):
-                os.remove(path)
-            cv.imwrite(path, data)
-
-        print()
+    print(
+        f"Processed {len(args.files)} files in {cputimepassed:.9g}s "
+        + f"main process time and {timepassed:.9g}s real time."
+    )
 
 
 if __name__ == "__main__":
