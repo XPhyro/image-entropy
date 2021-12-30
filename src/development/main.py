@@ -193,7 +193,8 @@ def main():
 
     print(
         f"Processed {len(files)} files in {cputimepassed:.9g}s "
-        + f"main process time and {timepassed:.9g}s real time."
+        + f"main process time and {timepassed:.9g}s real time. "
+        + f"{dt.now()}"
     )
 
     results = list(filter(lambda x: x is not None, results))
