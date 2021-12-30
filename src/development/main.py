@@ -58,7 +58,7 @@ def parseargs():
         "files",
         help="paths to input image files",
         metavar="FILE",
-        nargs="+",
+        nargs="*",
     )
 
     args = parser.parse_args()
@@ -161,6 +161,10 @@ def processmain(data):
 def main():
     parseargs()
 
+    files = args.files
+    if not files or not len(files):
+        files = sys.stdin.read().split("\0")
+
     cpucount = os.cpu_count()
     processcount = (cpucount * 13) // 12
 
@@ -182,13 +186,13 @@ def main():
     cputimepassed = time.process_time()
 
     with mp.Pool(processcount) as p:
-        results = p.map(processmain, enumerate(args.files))
+        results = p.map(processmain, enumerate(files))
 
     cputimepassed = time.process_time() - cputimepassed
     timepassed = time.time() - timepassed
 
     print(
-        f"Processed {len(args.files)} files in {cputimepassed:.9g}s "
+        f"Processed {len(files)} files in {cputimepassed:.9g}s "
         + f"main process time and {timepassed:.9g}s real time."
     )
 
@@ -223,7 +227,7 @@ def main():
                 "file_name": ifl[1],
                 "date_captured": "1970-01-01 02:00:00",
             }
-            for ifl, r in zip(enumerate(args.files), results)
+            for ifl, r in zip(enumerate(files), results)
         ],
         "annotations": results,
         "categories": [
