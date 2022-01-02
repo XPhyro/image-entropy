@@ -135,8 +135,8 @@ def processmain(data):
     segmentation = coco.encode(entmask)
     size = segmentation["size"]
     counts = list(segmentation["counts"])
-    area = coco.area(segmentation)
-    bbox = coco.toBbox(segmentation)
+    area = float(coco.area(segmentation))
+    bbox = list(coco.toBbox(segmentation))
 
     ret = {
         "id": idx + 1000000000,
@@ -147,8 +147,8 @@ def processmain(data):
             "counts": counts,
         },
         "image_id": idx,
-        "area": float(area),
-        "bbox": list(bbox),
+        "area": area,
+        "bbox": bbox,
     }
 
     printerr(f"Done processing file {fl}.")
