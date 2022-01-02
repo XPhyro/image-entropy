@@ -247,8 +247,8 @@ def main():
             resultjson,
             f,
             ensure_ascii=False,
-            indent=0,
-            separators=[",", ":"],
+            indent=4,
+            separators=[", ", ": "],
         )
 
     print(f"Done. {dt.now()}")
