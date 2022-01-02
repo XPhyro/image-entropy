@@ -28,8 +28,6 @@ def parseargs():
         description="Find ROIs in images and write to file."
     )
 
-    opgroup = parser.add_mutually_exclusive_group()
-
     parser.add_argument(
         "-k",
         "--kernel-size",
