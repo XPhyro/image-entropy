@@ -49,6 +49,13 @@ def parseargs():
     )
 
     parser.add_argument(
+        "-S",
+        "--save-images",
+        help="save debugging images.",
+        action="store_true",
+    )
+
+    parser.add_argument(
         "-s",
         "--sigma",
         help="sigma value for blurring the regions of interest. (default: 5.0)",
@@ -126,9 +133,7 @@ def processmain(data):
     jrng = np.max([np.max(np.abs(fx)), np.max(np.abs(fy))])
     assert jrng <= 255, "J must be in range [-255, 255]"
 
-    WILL_SAVE_IMAGES = False
-
-    if WILL_SAVE_IMAGES:
+    if args.save_images:
         kernshape = (args.kernel_size,) * 2
         kerngrad = np.einsum(
             "ijkl->ij",
@@ -154,7 +159,7 @@ def processmain(data):
     roigradblurred = gaussian_filter(roigrad, sigma=args.sigma)
     roigradblurred[np.nonzero(roigradblurred)] = 255
 
-    if WILL_SAVE_IMAGES:
+    if args.save_images:
         roikerngrad = np.abs(grad)
         roikerngradflat = roikerngrad.flatten()
         mean = np.mean(roigrad)
@@ -176,7 +181,7 @@ def processmain(data):
     entmasksource = roigradblurred
     entmask = np.asfortranarray(roigradblurred).astype(np.uint8)
 
-    if WILL_SAVE_IMAGES:
+    if args.save_images:
         entmaskcolour = cv.cvtColor(entmasksource.astype(np.uint8), cv.COLOR_GRAY2BGR)
         entmaskcolour[:, :, 0:2] = 0
         overlay = np.bitwise_or(entmaskcolour, inputimg)
