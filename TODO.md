@@ -4,6 +4,7 @@
 - Automatically determine sigma.
 - Automatically determine mu.
 - Automatically determine kernel size.
+- If FILE is a directory, read all files (non-recursively) in it.
 
 
 # Research
