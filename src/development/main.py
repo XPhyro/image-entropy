@@ -126,6 +126,19 @@ def processmain(data):
     jrng = np.max([np.max(np.abs(fx)), np.max(np.abs(fy))])
     assert jrng <= 255, "J must be in range [-255, 255]"
 
+    WILL_SAVE_IMAGES = False
+
+    if WILL_SAVE_IMAGES:
+        kernshape = (args.kernel_size,) * 2
+        kerngrad = np.einsum(
+            "ijkl->ij",
+            np.lib.stride_tricks.as_strided(
+                grad,
+                tuple(np.subtract(grad.shape, kernshape) + 1) + kernshape,
+                grad.strides * 2,
+            ),
+        )
+
     roigrad = np.abs(grad)
     roigradflat = roigrad.flatten()
     mean = np.mean(roigrad)
@@ -141,7 +154,57 @@ def processmain(data):
     roigradblurred = gaussian_filter(roigrad, sigma=args.sigma)
     roigradblurred[np.nonzero(roigradblurred)] = 255
 
+    if WILL_SAVE_IMAGES:
+        roikerngrad = np.abs(grad)
+        roikerngradflat = roikerngrad.flatten()
+        mean = np.mean(roigrad)
+        roikerngradbound = (
+            mean,
+            *stats.t.interval(
+                args.mu,
+                len(roikerngradflat) - 1,
+                loc=mean,
+                scale=stats.sem(roikerngradflat),
+            ),
+        )
+        roikerngrad[roikerngrad < roikerngradbound[2]] = 0
+        roikerngrad[np.nonzero(roikerngrad)] = 255
+
+        roikerngradblurred = gaussian_filter(roikerngrad, sigma=args.sigma)
+        roikerngradblurred[np.nonzero(roikerngradblurred)] = 255
+
+    entmasksource = roigradblurred
     entmask = np.asfortranarray(roigradblurred).astype(np.uint8)
+
+    if WILL_SAVE_IMAGES:
+        entmaskcolour = cv.cvtColor(entmasksource.astype(np.uint8), cv.COLOR_GRAY2BGR)
+        entmaskcolour[:, :, 0:2] = 0
+        overlay = np.bitwise_or(entmaskcolour, inputimg)
+
+        results = (
+            (grad, "gradient"),
+            (kerngrad, "gradient-convolved"),
+            (roigrad, "roi"),
+            (roigradblurred, "roi-blurred"),
+            (roikerngrad, "roi-convolved"),
+            (roikerngradblurred, "roi-convolved-blurred"),
+            (entmask, "coco-mask"),
+            (overlay, "coco-mask-overlayed"),
+        )
+
+        pathdir = f"results/{fl[fl.rfind('/') + 1 :]}"
+
+        try:
+            os.makedirs(pathdir)
+        except FileExistsError:
+            pass
+
+        for r in results:
+            data, name = r
+            path = f"{pathdir}/{name}.png"
+            if os.path.exists(path):
+                os.remove(path)
+            cv.imwrite(path, data)
 
     segmentation = coco.encode(entmask)
     size = segmentation["size"]
