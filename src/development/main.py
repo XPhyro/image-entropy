@@ -169,6 +169,8 @@ def main():
     files = args.files
     if not files or not len(files):
         files = sys.stdin.read().split("\0" if args.zero_terminated else "\n")
+        if not files[-1]:
+            files.pop()
 
     cpucount = os.cpu_count()
     processcount = (cpucount * 13) // 12
