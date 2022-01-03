@@ -142,3 +142,4 @@ cython_debug/
 ### END DEFAULT GITIGNORE
 
 *results/
+*.json
