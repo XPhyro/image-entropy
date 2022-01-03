@@ -17,6 +17,10 @@ import numpy as np
 import scipy.stats as stats
 
 
+__author__ = "Berke Kocaoğlu"
+__version__ = "0.1.0"
+
+
 def printerr(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
 
@@ -214,9 +218,9 @@ def main():
         "info": {
             "description": "Image Entropy",
             "url": "https://github.com/XPhyro/image-entropy",
-            "version": "0.1.0",
+            "version": __version__,
             "year": utctime.tm_year,
-            "contributor": "Berke Kocaoğlu",
+            "contributor": __author__,
             "date_created": time.strftime("%Y/%m/%d", utctime),
         },
         "licenses": [
