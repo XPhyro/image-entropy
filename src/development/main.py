@@ -139,7 +139,7 @@ def processmain(data):
     roigrad[np.nonzero(roigrad)] = 255
 
     roigradblurred = gaussian_filter(roigrad, sigma=args.sigma)
-    roigradblurred[np.nonzero(roigradblurred)] = 1
+    roigradblurred[np.nonzero(roigradblurred)] = 255
 
     entmask = np.asfortranarray(roigradblurred).astype(np.uint8)
 
