@@ -215,7 +215,7 @@ def main():
             "version": "0.1.0",
             "year": 2021,
             "contributor": "Berke Kocaoğlu",
-            "date_created": time.strftime("%Y/%m/%d", time.gmtime()),
+            "date_created": time.strftime("%Y/%m/%d", time.localtime()),
         },
         "licenses": [
             {
