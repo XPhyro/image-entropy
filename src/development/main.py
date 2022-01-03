@@ -208,16 +208,16 @@ def main():
 
     print(f"Generating JSON dictionary. {dt.now()}")
 
-    localtime = time.localtime()
+    utctime = time.gmtime()
 
     resultjson = {
         "info": {
             "description": "Image Entropy",
             "url": "https://github.com/XPhyro/image-entropy",
             "version": "0.1.0",
-            "year": localtime.tm_year,
+            "year": utctime.tm_year,
             "contributor": "Berke Kocaoğlu",
-            "date_created": time.strftime("%Y/%m/%d", localtime),
+            "date_created": time.strftime("%Y/%m/%d", utctime),
         },
         "licenses": [
             {
