@@ -214,6 +214,7 @@ def processmain(data):
     segmentation = coco.encode(entmask)
     size = segmentation["size"]
     counts = list(segmentation["counts"])
+    # area = float(np.count_nonzero(entmasksource))
     area = float(coco.area(segmentation))
     bbox = list(coco.toBbox(segmentation))
 
