@@ -5,6 +5,8 @@
 - Automatically determine mu.
 - Automatically determine kernel size.
 - If FILE is a directory, read all files (non-recursively) in it.
+- Segment the objects before entropy computations and output these objects in
+  the annotations.
 
 
 # Research
