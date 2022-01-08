@@ -113,13 +113,11 @@ def processmain(data):
         printerr(f"Could not read file {fl}.")
         return
 
-    colourimg = cv.cvtColor(inputimg, cv.COLOR_BGR2RGB)  # for plotting
     greyimg = cv.cvtColor(inputimg, cv.COLOR_BGR2GRAY)
 
     assert greyimg.dtype == np.uint8, "image channel depth must be 8 bits"
 
     # prevent over/underflows during computation
-    colourimg = colourimg.astype(np.int64)
     greyimg = greyimg.astype(np.int64)
 
     ### compute

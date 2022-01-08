@@ -20,14 +20,12 @@
 
 
 from copy import deepcopy as duplicate
-from itertools import groupby
 from operator import itemgetter
 
 import scipy.stats as stats
 from scipy.ndimage.filters import gaussian_filter
 from skimage.filters.rank import entropy as skentropy
 from skimage.morphology import disk as skdisk
-import cv2 as cv
 import numpy as np
 
 import log
@@ -165,13 +163,6 @@ def delentropynd(args, colourimg, greyimg):
         f"entropy: {entropy}",
         f"entropy ratio: {entropy / 8.0}",
     )
-
-    # the reference image seems to be bitwise inverted, I don't know why.
-    # the entropy doesn't change when inverted, so both are okay in
-    # the previous computational steps.
-    param_invert = True
-
-    # gradimg = np.invert(grad) if param_invert else grad
 
     return (
         entropy,
@@ -335,7 +326,6 @@ def delentropy2dvc(args, colourimg, greyimg):
 
     for i in kerns:
         for j in i:
-            grad = np.gradient(i)
             fx = grad[0].astype(int)
             fy = grad[1].astype(int)
 
@@ -397,19 +387,11 @@ def delentropyndv(args, colourimg, greyimg):
         f"entropy ratio: {entropy / 8.0}",
     )
 
-    # the reference image seems to be bitwise inverted, I don't know why.
-    # the entropy doesn't change when inverted, so both are okay in
-    # the previous computational steps.
-    param_invert = True
-
-    # gradimg = np.invert(grad) if param_invert else grad
-
     return (
         entropy,
         colourimg,
         greyimg,
         [
-            # (gradimg, "Gradient", []),
             (deldensity, "Deldensity", ["hasbar"]),
         ],
     )

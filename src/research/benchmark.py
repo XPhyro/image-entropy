@@ -1,7 +1,5 @@
 import time
 
-import numpy as np
-
 import log
 
 
@@ -9,7 +7,7 @@ try:
     from pypapi import events, papi_high as high
 
     haspapi = True
-except:
+except ModuleNotFoundError:
     haspapi = False
 
 
