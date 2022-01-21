@@ -145,3 +145,4 @@ cython_debug/
 *.json
 *.h5
 data/nosync*
+NOTES.md
