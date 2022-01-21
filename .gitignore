@@ -143,3 +143,5 @@ cython_debug/
 
 *results/
 *.json
+*.h5
+data/nosync*
