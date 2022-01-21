@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3.7
 # See `./main.py --help`.
 
 
@@ -10,11 +10,14 @@ import os
 import sys
 import time
 
-from pycocotools import mask as coco
 from scipy.ndimage.filters import gaussian_filter
 import cv2 as cv
 import numpy as np
 import scipy.stats as stats
+
+from pixellib.instance import instance_segmentation
+from pycocotools import mask as coco
+import pixellib
 
 
 __author__ = "Berke Kocaoğlu"
@@ -32,7 +35,18 @@ def parseargs():
         description="Find ROIs in images and write to file."
     )
 
-    parser.add_argument(
+    requiredgroup = parser.add_argument_group("required arguments")
+    optionalgroup = parser.add_argument_group("optional arguments")
+
+    optionalgroup.add_argument(
+        "-f",
+        "--infer-speed",
+        help=f"speed to use. (default: average)",
+        choices=["average", "fast", "rapid"],
+        default="average",
+    )
+
+    optionalgroup.add_argument(
         "-k",
         "--kernel-size",
         help="kernel size to be used with regional methods. must be a positive odd integer except 1. (default: 11)",
@@ -40,22 +54,29 @@ def parseargs():
         default=11,
     )
 
-    parser.add_argument(
-        "-m",
+    optionalgroup.add_argument(
+        "-M",
         "--mu",
         help="mu value to be used in distribution thresholding. (default: 0.99)",
         type=argtypeunit,
         default=0.99,
     )
 
-    parser.add_argument(
+    requiredgroup.add_argument(
+        "-m",
+        "--model",
+        help="tensorflow instance segmentation model to use.",
+        required=True,
+    )
+
+    optionalgroup.add_argument(
         "-S",
         "--save-images",
         help="save debugging images.",
         action="store_true",
     )
 
-    parser.add_argument(
+    optionalgroup.add_argument(
         "-s",
         "--sigma",
         help="sigma value for blurring the regions of interest. (default: 5.0)",
@@ -63,14 +84,14 @@ def parseargs():
         default=5,
     )
 
-    parser.add_argument(
+    optionalgroup.add_argument(
         "-z",
         "--zero-terminated",
         help="file delimiter in standard input is NUL, not newline.",
         action="store_true",
     )
 
-    parser.add_argument(
+    optionalgroup.add_argument(
         "files",
         help="paths to input image files. with no FILE, read standard input.",
         metavar="FILE",
@@ -104,6 +125,8 @@ def argtypeposfloat(val):
 def processmain(data):
     idx, fl = data
     idx += 1
+
+    print(f"Processing file {idx} - {fl}")
 
     ### read
 
@@ -208,6 +231,14 @@ def processmain(data):
             if os.path.exists(path):
                 os.remove(path)
             cv.imwrite(path, data)
+
+        segmenter = instance_segmentation(infer_speed=args.infer_speed)
+        segmenter.load_model(args.model)
+        segmenter.segmentImage(
+            fl,
+            output_image_name=f"{pathdir}/segmentation.png",
+            show_bboxes=True,
+        )
 
     segmentation = coco.encode(entmask)
     size = segmentation["size"]
