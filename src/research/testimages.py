@@ -1,5 +1,5 @@
-import numpy as np
 from scipy.misc import face as spface, ascent as spascent
+import numpy as np
 
 
 SEED = 3141592653

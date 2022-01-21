@@ -87,7 +87,7 @@ def _measurepapi(event, count, func, funcargs):
 
     measure = 0
 
-    for i in range(count):
+    for _ in range(count):
         high.start_counters([event])
         func(*funcargs)
         measure += high.stop_counters()[0]
@@ -99,7 +99,7 @@ def _measureproctime(count, func, funcargs):
     tmp = log.infoenabled
     log.infoenabled = False
     cputime = 0
-    for i in range(count):
+    for _ in range(count):
         timenow = time.process_time()
         func(*funcargs)
         cputime += time.process_time() - timenow

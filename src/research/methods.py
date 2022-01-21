@@ -22,7 +22,7 @@
 from copy import deepcopy as duplicate
 from operator import itemgetter
 
-import scipy.stats as stats
+from scipy import stats
 from scipy.ndimage.filters import gaussian_filter
 from skimage.filters.rank import entropy as skentropy
 from skimage.morphology import disk as skdisk
@@ -65,7 +65,7 @@ def kapur1dv(args, colourimg, greyimg):
 
 
 def shannon1d(args, colourimg, greyimg):
-    value, counts = np.unique(greyimg.flatten(), return_counts=True)
+    _, counts = np.unique(greyimg.flatten(), return_counts=True)
     entropy = stats.entropy(counts, base=2)
 
     log.info(
@@ -94,7 +94,7 @@ def delentropy2d(args, colourimg, greyimg):
 
     ### 1609.01117 page 16, eq 17
 
-    hist, edgex, edgey = np.histogram2d(
+    hist, _, _ = np.histogram2d(
         fx.flatten(),
         fy.flatten(),
         bins=255,
@@ -147,7 +147,7 @@ def delentropynd(args, colourimg, greyimg):
 
     ### 1609.01117 page 16
 
-    hist, edges = np.histogramdd(
+    hist, _ = np.histogramdd(
         np.vstack([fx.flatten(), fy.flatten()]).transpose(),
         bins=255,
     )
@@ -190,7 +190,7 @@ def delentropy2dv(args, colourimg, greyimg):
 
     ### 1609.01117 page 16
 
-    hist, edgex, edgey = np.histogram2d(
+    hist, _, _ = np.histogram2d(
         fx.flatten(),
         fy.flatten(),
         bins=255,
@@ -228,7 +228,6 @@ def delentropy2dv(args, colourimg, greyimg):
 
 
 def gradient2dc(args, colourimg, greyimg):
-    # TODO
     ### 1609.01117 page 10
 
     grad = np.gradient(greyimg)
@@ -243,7 +242,7 @@ def gradient2dc(args, colourimg, greyimg):
 
     ### 1609.01117 page 16
 
-    hist, edgex, edgey = np.histogram2d(
+    hist, _, _ = np.histogram2d(
         fx.flatten(),
         fy.flatten(),
         bins=255,
@@ -325,7 +324,7 @@ def delentropy2dvc(args, colourimg, greyimg):
     kernent = []
 
     for i in kerns:
-        for j in i:
+        for _ in i:
             fx = grad[0].astype(int)
             fy = grad[1].astype(int)
 
@@ -334,7 +333,7 @@ def delentropy2dvc(args, colourimg, greyimg):
             jrng = np.max([np.max(np.abs(fx)), np.max(np.abs(fy))])
             assert jrng <= 255, "J must be in range [-255, 255]"
 
-            hist, edgex, edgey = np.histogram2d(
+            hist, _, _ = np.histogram2d(
                 fx.flatten(),
                 fy.flatten(),
                 bins=255,
@@ -370,7 +369,7 @@ def delentropyndv(args, colourimg, greyimg):
 
     ### 1609.01117 page 16
 
-    hist, edges = np.histogramdd(
+    hist, _ = np.histogramdd(
         np.vstack(grad).transpose(),
         bins=255,
     )

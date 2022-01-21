@@ -16,7 +16,7 @@ errcache = ""
 def _print(msg, file=stdout, end="\n"):
     global outcache, errcache
 
-    assert file == stdout or file == stderr
+    assert file in (stdout, stderr)
 
     if file == stdout:
         if spongeout:
