@@ -11,4 +11,4 @@ else
     }
 fi
 
-unbuffer src/development/main.py -k 15 -M 0.995 -s 0.8 -S -m *.h5 data/* 2>&1 | filter
+unbuffer src/development/main.py -k 15 -M 0.995 -s 0.8 -S -m ./*.h5 data/* 2>&1 | filter
