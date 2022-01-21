@@ -5,6 +5,7 @@ import log
 
 try:
     from pypapi import events, papi_high as high
+    from pypapi.exceptions import PapiNoEventError
 
     haspapi = True
 except ModuleNotFoundError:
@@ -44,7 +45,7 @@ def _checkevent(event):
         high.start_counters([event])
         high.stop_counters()
         return True
-    except:
+    except PapiNoEventError:
         return False
 
 
