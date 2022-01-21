@@ -17,7 +17,6 @@ import scipy.stats as stats
 
 from pixellib.instance import instance_segmentation
 from pycocotools import mask as coco
-import pixellib
 
 
 __author__ = "Berke Kocaoğlu"
@@ -45,7 +44,6 @@ def makedirs(path):
     except FileExistsError as err:
         if not os.path.isdir(path):
             raise err
-        pass
 
 
 def parseargs():
@@ -57,6 +55,13 @@ def parseargs():
 
     requiredgroup = parser.add_argument_group("required arguments")
     optionalgroup = parser.add_argument_group("optional arguments")
+
+    optionalgroup.add_argument(
+        "-a",
+        "--async",
+        help=f"enable experimental GPU-CPU simultaneity.",
+        action="store_true",
+    )
 
     optionalgroup.add_argument(
         "-f",
@@ -323,8 +328,6 @@ def main():
 
     loginfo(f"Processing files.")
 
-    cpuasync = False
-
     timepassed = time.time()
     cputimepassed = time.process_time()
 
@@ -333,7 +336,7 @@ def main():
         + f"{'es' if processcount > 1 or processcount == 0 else ''}."
     )
     with mp.Pool(processcount) as p:
-        if cpuasync:
+        if args.async:
             results = p.map_async(cpumain, enumerate(files))
         else:
             results = p.map(cpumain, enumerate(files))
@@ -341,7 +344,7 @@ def main():
     loginfo("Deploying GPU process.")
     gpumain(files)
 
-    if cpuasync:
+    if args.async:
         loginfo("GPU finished, checking on CPU.")
 
         if not results.ready():
