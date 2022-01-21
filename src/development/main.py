@@ -23,9 +23,29 @@ import pixellib
 __author__ = "Berke Kocaoğlu"
 __version__ = "0.1.0"
 
+__execname__ = sys.argv[0][sys.argv[0].rfind("/") + 1 :]
 
-def printerr(*args, **kwargs):
-    print(*args, file=sys.stderr, **kwargs)
+
+def _log(*args, file=os.devnull, **kwargs):
+    print(f"{__execname__} [{dt.now()}]: ", file=file, end="")
+    print(*args, file=file, **kwargs)
+
+
+def loginfo(*args, **kwargs):
+    _log(*args, file=sys.stdout, **kwargs)
+
+
+def logerr(*args, **kwargs):
+    _log(*args, file=sys.stderr, **kwargs)
+
+
+def makedirs(path):
+    try:
+        os.makedirs(path)
+    except FileExistsError as err:
+        if not os.path.isdir(path):
+            raise err
+        pass
 
 
 def parseargs():
@@ -122,18 +142,18 @@ def argtypeposfloat(val):
     return fval
 
 
-def processmain(data):
+def cpumain(data):
     idx, fl = data
     idx += 1
 
-    print(f"Processing file {idx} - {fl}")
+    loginfo(f"CPU: Processing file {idx} - {fl}")
 
     ### read
 
     inputimg = cv.imread(fl)
 
     if inputimg is None:  # do not use `not inputimg` for compatibility with arrays
-        printerr(f"Could not read file {fl}.")
+        logerr(f"Could not read file {fl}.")
         return
 
     greyimg = cv.cvtColor(inputimg, cv.COLOR_BGR2GRAY)
@@ -218,27 +238,16 @@ def processmain(data):
             (overlay, "coco-mask-overlayed"),
         )
 
-        pathdir = f"results/{fl[fl.rfind('/') + 1 :]}"
+        parentdir = f"results/{fl[fl.rfind('/') + 1 :]}"
 
-        try:
-            os.makedirs(pathdir)
-        except FileExistsError:
-            pass
+        makedirs(parentdir)
 
         for r in results:
             data, name = r
-            path = f"{pathdir}/{name}.png"
+            path = f"{parentdir}/{name}.png"
             if os.path.exists(path):
                 os.remove(path)
             cv.imwrite(path, data)
-
-        segmenter = instance_segmentation(infer_speed=args.infer_speed)
-        segmenter.load_model(args.model)
-        segmenter.segmentImage(
-            fl,
-            output_image_name=f"{pathdir}/segmentation.png",
-            show_bboxes=True,
-        )
 
     segmentation = coco.encode(entmask)
     size = segmentation["size"]
@@ -260,9 +269,31 @@ def processmain(data):
         "bbox": bbox,
     }
 
-    printerr(f"Done processing file {fl}.")
+    loginfo(f"CPU: Done processing file {idx} - {fl}")
 
     return ret
+
+
+def gpumain(files):
+    loginfo(f"GPU: Initialising segmenter with {args.infer_speed} speed.")
+    segmenter = instance_segmentation(infer_speed=args.infer_speed)
+    loginfo(f"GPU: Loading model {args.model}.")
+    segmenter.load_model(args.model)
+
+    for i, fl in enumerate(files):
+        loginfo(f"GPU: Processing {i} - {fl}")
+
+        parentdir = f"results/{fl[fl.rfind('/') + 1 :]}"
+
+        makedirs(parentdir)
+
+        segmenter.segmentImage(
+            fl,
+            output_image_name=f"{parentdir}/segmentation.png",
+            show_bboxes=True,
+        )
+
+        loginfo(f"GPU: Done processing file {i} - {fl}")
 
 
 def main():
@@ -275,9 +306,10 @@ def main():
             files.pop()
 
     cpucount = os.cpu_count()
-    processcount = (cpucount * 13) // 12
+    # processcount = (cpucount * 13) // 12
+    processcount = cpucount
 
-    print(
+    loginfo(
         "\n\t".join(
             [
                 "Using parameters:",
@@ -289,26 +321,47 @@ def main():
         )
     )
 
-    print(f"Processing files. {dt.now()}")
+    loginfo(f"Processing files.")
+
+    cpuasync = False
 
     timepassed = time.time()
     cputimepassed = time.process_time()
 
+    loginfo(
+        "Deploying CPU process"
+        + f"{'es' if processcount > 1 or processcount == 0 else ''}."
+    )
     with mp.Pool(processcount) as p:
-        results = p.map(processmain, enumerate(files))
+        if cpuasync:
+            results = p.map_async(cpumain, enumerate(files))
+        else:
+            results = p.map(cpumain, enumerate(files))
+
+    loginfo("Deploying GPU process.")
+    gpumain(files)
+
+    if cpuasync:
+        loginfo("GPU finished, checking on CPU.")
+
+        if not results.ready():
+            loginfo("CPU is not finished, waiting.")
+            # results.wait()
+
+        results = results.get()
+        loginfo("CPU is finished.")
 
     cputimepassed = time.process_time() - cputimepassed
     timepassed = time.time() - timepassed
 
-    print(
+    loginfo(
         f"Processed {len(files)} files in {cputimepassed:.9g}s "
-        + f"main process time and {timepassed:.9g}s real time. "
-        + f"{dt.now()}"
+        + f"process time and {timepassed:.9g}s real time."
     )
 
     results = list(filter(lambda x: x is not None, results))
 
-    print(f"Generating JSON dictionary. {dt.now()}")
+    loginfo(f"Setting up JSON data.")
 
     utctime = time.gmtime()
 
@@ -351,7 +404,7 @@ def main():
         ],
     }
 
-    print(f"Generating JSON file. {dt.now()}")
+    loginfo(f"Generating JSON file.")
 
     with open("cocoout.json", "w", encoding="utf-8") as f:
         json.dump(
@@ -362,7 +415,7 @@ def main():
             separators=[", ", ": "],
         )
 
-    print(f"Done. {dt.now()}")
+    loginfo(f"Done.")
 
 
 if __name__ == "__main__":

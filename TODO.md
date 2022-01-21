@@ -4,15 +4,13 @@
 - Automatically determine sigma.
 - Automatically determine mu.
 - Automatically determine kernel size.
-- If FILE is a directory, read all files (non-recursively) in it.
+- If FILE is a directory, read all files (non-recursively) in it. Have an option
+  to make this recursive.
 - Output two other ROI images using the segmented object instances:
   - Compute the entropy globally and split to instances.
   - Compute the entropy in each object.
-- Suppress PixelLib (inner Tensorflow) warnings.
-
-## Refactor / Rework / Optimisation
-- Separate CPU and GPU computations, enabling better utilisation of hardware.
-  Currently, they are bottlenecked by one another.
+- Before entropy and other computations, segment all images, then distribute the
+  segmentations to the deployed CPU processes.
 
 
 # Research
