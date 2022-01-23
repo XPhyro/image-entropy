@@ -65,7 +65,7 @@ def main():
         "Processing files.",
     )
 
-    timepassed = time.time()
+    timepassed = time.monotonic()
     cputimepassed = time.process_time()
 
     loginfo("Deploying segmentation workers.")
@@ -94,7 +94,7 @@ def main():
         results = p.map(workers.entropy, list(enumerate(files)))
 
     cputimepassed = time.process_time() - cputimepassed
-    timepassed = time.time() - timepassed
+    timepassed = time.monotonic() - timepassed
 
     loginfo(
         f"Processed {len(files)} files in {cputimepassed:.6f}s "
