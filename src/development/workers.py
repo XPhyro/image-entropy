@@ -1,9 +1,9 @@
 import os
 
+from scipy import stats
 from scipy.ndimage.filters import gaussian_filter
 import cv2 as cv
 import numpy as np
-import scipy.stats as stats
 import tensorflow as tf
 
 from pixellib.instance import instance_segmentation
@@ -26,7 +26,7 @@ def entropy(data):
 
     if inputimg is None:  # do not use `not inputimg` for compatibility with arrays
         logerr(f"Could not read file {fl}.")
-        return
+        return None
 
     greyimg = cv.cvtColor(inputimg, cv.COLOR_BGR2GRAY)
 
@@ -168,7 +168,7 @@ async def segment(devname, inqueue, outqueue):
                 output_image_name=f"{parentdir}/segmentation.png",
                 show_bboxes=True,
             )
-            await outqueue.put(outqueue)
+            await outqueue.put(segmentation)
             inqueue.task_done()
 
             loginfo(f"{devname}: Done processing file {i} - {fl}")

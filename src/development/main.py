@@ -2,7 +2,6 @@
 # See `./main.py --help`.
 
 
-from datetime import datetime as dt
 import json
 import multiprocessing as mp
 import os
@@ -13,7 +12,7 @@ from tensorflow.compat.v1 import ConfigProto, InteractiveSession
 import tensorflow as tf
 
 from argparser import getargs
-from log import loginfo, logerr
+from log import loginfo
 import workers
 
 
@@ -36,7 +35,7 @@ def configuretf():
 def main():
     files = args.files
 
-    if not files or not len(files):
+    if not files:
         files = sys.stdin.read().split("\0" if args.zero_terminated else "\n")
         if not files[-1]:
             files.pop()
@@ -45,7 +44,7 @@ def main():
     devs = tf.config.get_visible_devices()
     gpucount = len(list(filter(lambda dev: dev.device_type == "GPU", devs)))
 
-    config, session = configuretf()
+    config, _ = configuretf()
 
     loginfo(
         "\n\t".join(
@@ -70,22 +69,23 @@ def main():
 
     loginfo("Deploying segmentation workers.")
 
-    devnames = [
-        *[
-            f"/GPU:{gpuidx}"
-            for gpuidx, _ in enumerate(
-                filter(lambda dev: dev.device_type == "GPU", devs)
-            )
-        ],
-        *[
-            f"/CPU:{cpuidx}"
-            for cpuidx, _ in enumerate(
-                filter(lambda dev: dev.device_type == "CPU", devs)
-            )
-        ],
-    ]
-    segqueue = mp.Queue()
-    segresults = mp.Queue()
+    # TODO
+    # devnames = [
+    #     *[
+    #         f"/GPU:{gpuidx}"
+    #         for gpuidx, _ in enumerate(
+    #             filter(lambda dev: dev.device_type == "GPU", devs)
+    #         )
+    #     ],
+    #     *[
+    #         f"/CPU:{cpuidx}"
+    #         for cpuidx, _ in enumerate(
+    #             filter(lambda dev: dev.device_type == "CPU", devs)
+    #         )
+    #     ],
+    # ]
+    # segqueue = mp.Queue()
+    # segresults = mp.Queue()
 
     loginfo(
         "Deploying entropy worker" + f"{'es' if cpucount > 1 or cpucount == 0 else ''}."
@@ -103,7 +103,7 @@ def main():
 
     results = list(filter(lambda x: x is not None, results))
 
-    loginfo(f"Setting up JSON data.")
+    loginfo("Setting up JSON data.")
 
     utctime = time.gmtime()
 
@@ -146,7 +146,7 @@ def main():
         ],
     }
 
-    loginfo(f"Generating JSON file.")
+    loginfo("Generating JSON file.")
 
     with open("cocoout.json", "w", encoding="utf-8") as f:
         json.dump(
@@ -157,7 +157,7 @@ def main():
             separators=[", ", ": "],
         )
 
-    loginfo(f"Done.")
+    loginfo("Done.")
 
 
 if __name__ == "__main__":

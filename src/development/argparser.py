@@ -13,7 +13,7 @@ def getargs():
     optionalgroup.add_argument(
         "-f",
         "--infer-speed",
-        help=f"speed to use. (default: average)",
+        help="speed to use. (default: average)",
         choices=["average", "fast", "rapid"],
         default="average",
     )
@@ -83,7 +83,7 @@ def argtypekernelsize(val):
 
 def argtypeunit(val):
     uval = float(val)
-    if not (0.0 < uval < 1.0):
+    if not 0.0 < uval < 1.0:
         raise ArgumentTypeError(f"{uval} is not a valid mu value.")
     return uval
 
