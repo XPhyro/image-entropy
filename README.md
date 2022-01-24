@@ -11,3 +11,5 @@ methods and testing & benchmarking. The code requires Python >=3.6.
 
 Under `src/development/`, the chosen entropy assessment method is integrated
 into a convolutional neural network. The code requires Python 3.7.
+
+All code are tested on Linux with an NVIDIA GPU. They may not work on other systems.
