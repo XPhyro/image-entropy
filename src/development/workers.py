@@ -1,3 +1,4 @@
+from multiprocessing.queues import Empty as QueueEmptyError
 import os
 
 from scipy import stats
@@ -12,9 +13,10 @@ from pycocotools import mask as coco
 from argparser import getargs
 from log import loginfo, logerr
 from util import makedirs
+import consts
 
 
-def entropy(data):
+def entropy(data, segresults):
     idx, fl = data
     idx += 1
 
@@ -146,7 +148,7 @@ def entropy(data):
     return ret
 
 
-async def segment(devname, inqueue, outqueue):
+def segment(devname, inqueue, outqueue):
     with tf.device(devname):
         loginfo(f"{devname}: Initialising segmenter with {args.infer_speed} speed.")
         segmenter = instance_segmentation(infer_speed=args.infer_speed)
@@ -154,24 +156,32 @@ async def segment(devname, inqueue, outqueue):
         segmenter.load_model(args.model)
 
         while True:
-            loginfo(f"{devname}: Waiting for queue.")
-            i, fl = await inqueue.get()
+            try:
+                idx, fl = inqueue.get(timeout=const.mptimeout)
+            except QueueEmptyError:
+                return
 
-            loginfo(f"{devname}: Processing {i} - {fl}")
+            loginfo(f"{devname}: Processing {idx} - {fl}")
 
             parentdir = f"results/{fl[fl.rfind('/') + 1 :]}"
 
             makedirs(parentdir)
 
-            segmentation = segmenter.segmentImage(
-                fl,
-                output_image_name=f"{parentdir}/segmentation.png",
-                show_bboxes=True,
+            outqueue.put(
+                (
+                    idx,
+                    segmenter.segmentImage(
+                        fl,
+                        output_image_name=f"{parentdir}/segmentation.png",
+                        show_bboxes=True,
+                    ),
+                )
             )
-            await outqueue.put(segmentation)
-            inqueue.task_done()
 
-            loginfo(f"{devname}: Done processing file {i} - {fl}")
+            loginfo(
+                f"{devname}: Done processing file {idx} - {fl}",
+                f"{devname}: Total files processed: {outqueue.qsize()}",
+            )
 
 
 args = getargs()

@@ -11,6 +11,7 @@
   - Compute the entropy in each object.
 - Before entropy and other computations, segment all images, then distribute the
   segmentations to the deployed CPU processes.
+- Make multi-device segmentation simultaneous instead of consecutive.
 
 
 # Research

@@ -2,6 +2,8 @@
 # See `./main.py --help`.
 
 
+from multiprocessing.queues import Empty as QueueEmptyError
+from operator import itemgetter
 import json
 import multiprocessing as mp
 import os
@@ -13,6 +15,7 @@ import tensorflow as tf
 
 from argparser import getargs
 from log import loginfo
+import consts
 import workers
 
 
@@ -21,15 +24,64 @@ __version__ = "0.1.0"
 
 
 def configuretf():
-    # tf.config.set_visible_devices([], device_type="gpu")
-    # tf.debugging.set_log_device_placement(True)
-
     config = ConfigProto()
     config.gpu_options.allow_growth = True
     config.allow_soft_placement = True
     config.log_device_placement = True
 
     return (config, InteractiveSession(config=config))
+
+
+def deploysegment(files, devs):
+    loginfo("Deploying segmentation workers.")
+
+    devnames = [
+        *[
+            f"/GPU:{gpuidx}"
+            for gpuidx, _ in enumerate(
+                filter(lambda dev: dev.device_type == "GPU", devs)
+            )
+        ],
+        *[
+            f"/CPU:{cpuidx}"
+            for cpuidx, _ in enumerate(
+                filter(lambda dev: dev.device_type == "CPU", devs)
+            )
+        ],
+    ]
+
+    inqueue = mp.Queue()
+    for i, fl in enumerate(files):
+        inqueue.put((i, fl))
+
+    outqueue = mp.Queue()
+
+    for d in devnames:
+        workers.segment(d, inqueue, outqueue)
+
+    loginfo(f"Total files processed: {outqueue.qsize()}")
+
+    segresults = []
+    while True:
+        try:
+            i = outqueue.get(timeout=const.mptimeout)
+        except QueueEmptyError:
+            break
+
+        segresults.append(i)
+
+    loginfo(f"Total results parsed: {segresults}")
+
+    return segresults
+
+
+def deployentropy(files):
+    loginfo(f"Deploying entropy worker{'s' if cpucount > 1 or cpucount == 0 else ''}.")
+
+    with mp.Pool(cpucount) as p:
+        results = p.map(workers.entropy, list(enumerate(files)))
+
+    return results
 
 
 def main():
@@ -67,43 +119,20 @@ def main():
     timepassed = time.monotonic()
     cputimepassed = time.process_time()
 
-    loginfo("Deploying segmentation workers.")
+    segresults = deploysegment(files, devs)
+    segresults.sort(key=itemgetter(0))
 
-    # TODO
-    # devnames = [
-    #     *[
-    #         f"/GPU:{gpuidx}"
-    #         for gpuidx, _ in enumerate(
-    #             filter(lambda dev: dev.device_type == "GPU", devs)
-    #         )
-    #     ],
-    #     *[
-    #         f"/CPU:{cpuidx}"
-    #         for cpuidx, _ in enumerate(
-    #             filter(lambda dev: dev.device_type == "CPU", devs)
-    #         )
-    #     ],
-    # ]
-    # segqueue = mp.Queue()
-    # segresults = mp.Queue()
-
-    loginfo(
-        "Deploying entropy worker" + f"{'es' if cpucount > 1 or cpucount == 0 else ''}."
-    )
-    with mp.Pool(cpucount) as p:
-        results = p.map(workers.entropy, list(enumerate(files)))
+    entresults = deployentropy(files, segresults)
+    entresults = list(filter(lambda x: x is not None, entresults))
 
     cputimepassed = time.process_time() - cputimepassed
     timepassed = time.monotonic() - timepassed
 
     loginfo(
         f"Processed {len(files)} files in {cputimepassed:.6f}s "
-        + f"process time and {timepassed:.6f}s real time."
+        + f"process time and {timepassed:.6f}s real time.",
+        "Setting up JSON data.",
     )
-
-    results = list(filter(lambda x: x is not None, results))
-
-    loginfo("Setting up JSON data.")
 
     utctime = time.gmtime()
 
@@ -134,9 +163,9 @@ def main():
                 "file_name": ifl[1][ifl[1].rfind("/") + 1 :],
                 "date_captured": "1970-01-01 02:00:00",
             }
-            for ifl, r in zip(enumerate(files), results)
+            for ifl, r in zip(enumerate(files), entresults)
         ],
-        "annotations": results,
+        "annotations": entresults,
         "categories": [
             {
                 "supercategory": "entropy",
