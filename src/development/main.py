@@ -64,7 +64,7 @@ def deploysegment(files, devs):
     segresults = []
     while True:
         try:
-            i = outqueue.get(timeout=const.mptimeout)
+            i = outqueue.get(timeout=consts.mptimeout)
         except QueueEmptyError:
             break
 

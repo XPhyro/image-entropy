@@ -157,7 +157,7 @@ def segment(devname, inqueue, outqueue):
 
         while True:
             try:
-                idx, fl = inqueue.get(timeout=const.mptimeout)
+                idx, fl = inqueue.get(timeout=consts.mptimeout)
             except QueueEmptyError:
                 return
 
