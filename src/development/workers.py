@@ -12,8 +12,8 @@ from pycocotools import mask as coco
 
 from argparser import getargs
 from log import loginfo, logerr
-from util import makedirs
 import consts
+import util
 
 
 def entropy(idx, fl, segresults):
@@ -109,9 +109,9 @@ def entropy(idx, fl, segresults):
             (overlay, "coco-mask-overlayed"),
         )
 
-        parentdir = f"results/{fl[fl.rfind('/') + 1 :]}"
+        parentdir = f"results/{util.basename(fl)}"
 
-        makedirs(parentdir)
+        util.makedirs(parentdir)
 
         for r in results:
             data, name = r
@@ -160,9 +160,9 @@ def segment(devname, inqueue, outqueue):
 
             loginfo(f"{devname}: Processing {idx} - {fl}")
 
-            parentdir = f"results/{fl[fl.rfind('/') + 1 :]}"
+            parentdir = f"results/{util.basename(fl)}"
 
-            makedirs(parentdir)
+            util.makedirs(parentdir)
 
             outqueue.put(
                 (

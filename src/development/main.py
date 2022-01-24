@@ -15,6 +15,7 @@ import tensorflow as tf
 
 from argparser import getargs
 from log import loginfo
+from util import basename
 import consts
 import workers
 
@@ -166,7 +167,7 @@ def main():
                 "flickr_url": "placeholder",
                 "width": r["segmentation"]["size"][0],
                 "height": r["segmentation"]["size"][1],
-                "file_name": ifl[1][ifl[1].rfind("/") + 1 :],
+                "file_name": basename(ifl[1]),
                 "date_captured": "1970-01-01 02:00:00",
             }
             for ifl, r in zip(enumerate(files), entresults)
