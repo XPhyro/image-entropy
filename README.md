@@ -1,5 +1,4 @@
 [![CodeFactor](https://www.codefactor.io/repository/github/xphyro/image-entropy/badge)](https://www.codefactor.io/repository/github/xphyro/image-entropy)
-[![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/XPhyro/image-entropy.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/XPhyro/image-entropy/context:python)
 
 # image-entropy
 This repository contains the source code of an ongoing research project on image
