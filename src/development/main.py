@@ -75,8 +75,11 @@ def deploysegment(files, devs):
     return segresults
 
 
-def deployentropy(files):
-    loginfo(f"Deploying entropy worker{'s' if cpucount > 1 or cpucount == 0 else ''}.")
+def deployentropy(files, cpucount, segresults):
+    loginfo(
+        f"Deploying entropy worker{'s' if cpucount > 1 or cpucount == 0 else ''}.",
+        f"Received {len(segresults)} segmentations, ignoring.",
+    )
 
     with mp.Pool(cpucount) as p:
         results = p.map(workers.entropy, list(enumerate(files)))
@@ -122,7 +125,7 @@ def main():
     segresults = deploysegment(files, devs)
     segresults.sort(key=itemgetter(0))
 
-    entresults = deployentropy(files, segresults)
+    entresults = deployentropy(files, cpucount, segresults)
     entresults = list(filter(lambda x: x is not None, entresults))
 
     cputimepassed = time.process_time() - cputimepassed
