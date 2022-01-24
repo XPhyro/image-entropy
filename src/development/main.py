@@ -71,7 +71,7 @@ def deploysegment(files, devs):
 
         segresults.append(i)
 
-    loginfo(f"Total results parsed: {segresults}")
+    loginfo(f"Total results parsed: {len(segresults)}")
 
     return segresults
 
