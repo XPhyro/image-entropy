@@ -57,6 +57,7 @@ def deploysegment(files, devs):
 
     outqueue = mp.Queue()
 
+    # TODO: use all devices simultaneously
     for d in devnames:
         workers.segment(d, inqueue, outqueue)
 

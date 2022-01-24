@@ -1,5 +1,7 @@
 #!/usr/bin/env sh
 
+set -x
+
 optfilter=1
 unset pythonpath
 while getopts "hp:s" OPT; do
@@ -51,5 +53,7 @@ fi
 if [ "$#" -ne 0 ]; then
     unbuffer "$pythonpath" src/development/main.py "$@" 2>&1
 else
-    unbuffer "$pythonpath" src/development/main.py -k 15 -M 0.995 -s 0.8 -S -m ./*.h5 data/* 2>&1
+    unbuffer "$pythonpath" src/development/main.py -k 15 -t 0.995 -s 0.8 -S \
+        -m "$(find . -mindepth 1 -maxdepth 1 -type f -name "instance*.h5" -o -name "instance*.pkl" -print0 | head -n 1 -z)" \
+        -M "$(find . -mindepth 1 -maxdepth 1 -type f -name "semantic*.h5" -print0 | head -n 1 -z)" 2>&1
 fi | filter

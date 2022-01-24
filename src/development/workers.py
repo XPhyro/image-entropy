@@ -8,6 +8,7 @@ import numpy as np
 import tensorflow as tf
 
 from pixellib.instance import instance_segmentation
+from pixellib.semantic import semantic_segmentation
 from pycocotools import mask as coco
 
 from argparser import getargs
@@ -16,7 +17,7 @@ import consts
 import util
 
 
-def entropy(idx, fl, segresults):
+def entropy(idx, fl, segmentation):
     loginfo(f"CPU: Processing file {idx} - {fl}")
 
     ### read
@@ -120,12 +121,14 @@ def entropy(idx, fl, segresults):
                 os.remove(path)
             cv.imwrite(path, data)
 
-    segmentation = coco.encode(entmask)
-    size = segmentation["size"]
-    counts = list(segmentation["counts"])
+    # TODO: consider segmentation
+
+    encodedmask = coco.encode(entmask)
+    size = encodedmask["size"]
+    counts = list(encodedmask["counts"])
     # area = float(np.count_nonzero(entmasksource))
-    area = float(coco.area(segmentation))
-    bbox = list(coco.toBbox(segmentation))
+    area = float(coco.area(encodedmask))
+    bbox = list(coco.toBbox(encodedmask))
 
     ret = {
         "id": idx + 1 + 1000000000,
@@ -147,10 +150,21 @@ def entropy(idx, fl, segresults):
 
 def segment(devname, inqueue, outqueue):
     with tf.device(devname):
-        loginfo(f"{devname}: Initialising segmenter with {args.infer_speed} speed.")
-        segmenter = instance_segmentation(infer_speed=args.infer_speed)
-        loginfo(f"{devname}: Loading model {args.model}.")
-        segmenter.load_model(args.model)
+        loginfo(
+            f"{devname}: Initialising instance segmenter "
+            + f"with {args.infer_speed} speed."
+        )
+        instancesegmenter = instance_segmentation(infer_speed=args.infer_speed)
+        loginfo(f"{devname}: Loading model {args.instance_model}.")
+        instancesegmenter.load_model(args.instance_model)
+
+        if args.semantic_model:
+            loginfo(
+                f"{devname}: Initialising semantic segmenter "
+                + f"with {args.infer_speed} speed."
+            )
+            semanticsegmenter = semantic_segmentation()
+            semanticsegmenter.load_ade20k_model(args.semantic_model)
 
         while True:
             try:
@@ -167,13 +181,20 @@ def segment(devname, inqueue, outqueue):
             outqueue.put(
                 (
                     idx,
-                    segmenter.segmentImage(
+                    instancesegmenter.segmentImage(
                         fl,
-                        output_image_name=f"{parentdir}/segmentation.png",
+                        output_image_name=f"{parentdir}/instance-segmentation.png",
                         show_bboxes=True,
                     ),
                 )
             )
+
+            if args.semantic_model:
+                semanticsegmenter.segmentAsAde20k(
+                    fl,
+                    output_image_name=f"{parentdir}/semantic-segmentation.png",
+                    overlay=True,
+                )
 
             loginfo(
                 f"{devname}: Done processing file {idx} - {fl}",

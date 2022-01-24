@@ -13,7 +13,7 @@ def getargs():
     optionalgroup.add_argument(
         "-f",
         "--infer-speed",
-        help="speed to use. (default: average)",
+        help="speed to use for instance segmentation. (default: average)",
         choices=["average", "fast", "rapid"],
         default="average",
     )
@@ -26,17 +26,16 @@ def getargs():
         default=11,
     )
 
-    optionalgroup.add_argument(
+    requiredgroup.add_argument(
         "-M",
-        "--mu",
-        help="mu value to be used in distribution thresholding. (default: 0.99)",
-        type=argtypeunit,
-        default=0.99,
+        "--semantic-model",
+        help="tensorflow semantic segmentation model to use.",
+        default="",
     )
 
     requiredgroup.add_argument(
         "-m",
-        "--model",
+        "--instance-model",
         help="tensorflow instance segmentation model to use.",
         required=True,
     )
@@ -54,6 +53,14 @@ def getargs():
         help="sigma value for blurring the regions of interest. (default: 5.0)",
         type=argtypeposfloat,
         default=5,
+    )
+
+    optionalgroup.add_argument(
+        "-t",
+        "--mu",
+        help="mu value to be used in distribution thresholding. (default: 0.99)",
+        type=argtypeunit,
+        default=0.99,
     )
 
     optionalgroup.add_argument(
