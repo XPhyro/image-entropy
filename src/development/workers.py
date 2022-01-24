@@ -16,10 +16,7 @@ from util import makedirs
 import consts
 
 
-def entropy(data, segresults):
-    idx, fl = data
-    idx += 1
-
+def entropy(idx, fl, segresults):
     loginfo(f"CPU: Processing file {idx} - {fl}")
 
     ### read
@@ -131,14 +128,14 @@ def entropy(data, segresults):
     bbox = list(coco.toBbox(segmentation))
 
     ret = {
-        "id": idx + 1000000000,
+        "id": idx + 1 + 1000000000,
         "category_id": 1,
         "iscrowd": 1,
         "segmentation": {
             "size": size,
             "counts": counts,
         },
-        "image_id": idx,
+        "image_id": idx + 1,
         "area": area,
         "bbox": bbox,
     }

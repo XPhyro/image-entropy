@@ -82,7 +82,10 @@ def deployentropy(files, cpucount, segresults):
     )
 
     with mp.Pool(cpucount) as p:
-        results = p.map(workers.entropy, list(enumerate(files)))
+        results = p.starmap(
+            workers.entropy,
+            [(i, fl, segresults[i]) for i, fl in enumerate(files)],
+        )
 
     return results
 

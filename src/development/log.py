@@ -7,8 +7,9 @@ execname = argv[0][argv[0].rfind("/") + 1 :]
 
 
 def _log(*args, file=devnull, **kwargs):
-    print(f"{execname} [{dt.now()}]: ", file=file, end="")
-    print(*args, file=file, sep="\n", **kwargs)
+    for arg in [*args]:
+        print(f"{execname} [{dt.now()}]: ", file=file, end="")
+        print(arg, file=file, **kwargs)
 
 
 def loginfo(*args, **kwargs):
