@@ -42,13 +42,14 @@ else
     }
 fi
 
-[ -z "$pythonpath" ] && pythonpath="$(command -v python3.7 2>&1)"
-[ -z "$pythonpath" ] && pythonpath="$(command -v python3 2>&1)"
-[ -z "$pythonpath" ] && pythonpath="$(command -v python 2>&1)"
-[ -z "$pythonpath" ] && {
-    printf "Could not find a suitable executable for Python. Supply one with -p option.\n"
-    exit 1
-}
+[ -n "$pythonpath" ] \
+    || pythonpath="$(command -v python3.7 2>&1)" \
+    || pythonpath="$(command -v python3 2>&1)" \
+    || pythonpath="$(command -v python 2>&1)" \
+    || {
+        printf "Could not find a suitable executable for Python. Supply one with -p option.\n"
+        exit 1
+    }
 
 if [ "$#" -ne 0 ]; then
     perf stat unbuffer "$pythonpath" src/development/main.py "$@" 2>&1
