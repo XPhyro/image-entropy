@@ -56,7 +56,7 @@ if [ "$#" -ne 0 ]; then
     perf stat unbuffer "$pythonpath" src/development/main.py "$@"
 else
     perf stat unbuffer "$pythonpath" src/development/main.py -k 15 -t 0.995 -s 0.8 -S \
-        -m "$(find . -mindepth 1 -maxdepth 1 -type f \( -name "instance*.h5" -o -name "instance*.pkl" \) -print0 | head -n 1 -z)" \
+        -m "$(find . -mindepth 1 -maxdepth 1 -type f -name "instance*.h5" -print0 | head -n 1 -z)" \
         -M "$(find . -mindepth 1 -maxdepth 1 -type f -name "semantic*.h5" -print0 | head -n 1 -z)" \
         data/*
 fi | filter

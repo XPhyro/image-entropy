@@ -144,6 +144,5 @@ cython_debug/
 *results/
 *.json
 *.h5
-*.pkl
 data/nosync*
 NOTES.md
