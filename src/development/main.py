@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 # See `./main.py --help`.
 
+from log import loginfo
+
+loginfo("Initialising.")
 
 from multiprocessing.queues import Empty as QueueEmptyError
 from operator import itemgetter
@@ -14,7 +17,6 @@ from tensorflow.compat.v1 import ConfigProto, InteractiveSession
 import tensorflow as tf
 
 from argparser import getargs
-from log import loginfo
 from util import basename
 import consts
 import workers
@@ -99,6 +101,8 @@ def main():
         files = sys.stdin.read().split("\0" if args.zero_terminated else "\n")
         if not files[-1]:
             files.pop()
+
+    loginfo("Collecting system information.")
 
     cpucount = os.cpu_count()
     devs = tf.config.get_visible_devices()
