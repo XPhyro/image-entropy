@@ -8,13 +8,16 @@ import numpy as np
 import tensorflow as tf
 
 from pixellib.instance import instance_segmentation
-from pixellib.semantic import semantic_segmentation
 from pycocotools import mask as coco
 
 from argparser import getargs
 from log import loginfo, logerr
 import consts
 import util
+
+args = getargs()
+if args.semantic_model:
+    from pixellib.semantic import semantic_segmentation
 
 
 def entropy(idx, fl, segmentation):
@@ -200,6 +203,3 @@ def segment(devname, inqueue, outqueue):
                 f"{devname}: Done processing file {idx} - {fl}",
                 f"{devname}: Total files processed: {outqueue.qsize()}",
             )
-
-
-args = getargs()
