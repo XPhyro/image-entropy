@@ -98,7 +98,8 @@ disable=invalid-name,
         raw-checker-failed,
         unused-argument,
         duplicate-code,
-        too-many-branches
+        too-many-branches,
+        ungrouped-imports
 # --disable=C0103,C0116,C0301,C0114,W0603,W0613,E1101,E1130,R0914,W0212,W0601,R0801,R0912
 
 # Enable the message, report, category or checker with the given id(s). You can
