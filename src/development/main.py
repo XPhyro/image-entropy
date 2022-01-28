@@ -1,9 +1,6 @@
 #!/usr/bin/env python3
 # See `./main.py --help`.
 
-from log import loginfo
-
-loginfo("Initialising.")
 
 from multiprocessing.queues import Empty as QueueEmptyError
 from operator import itemgetter
@@ -17,6 +14,7 @@ from tensorflow.compat.v1 import ConfigProto, InteractiveSession
 import tensorflow as tf
 
 from argparser import getargs
+from log import loginfo
 from util import basename
 import consts
 import workers
