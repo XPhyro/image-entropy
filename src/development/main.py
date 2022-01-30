@@ -38,6 +38,12 @@ def deploysegment(files, devs):
 
     devnames = [
         *[
+            f"/TPU:{tpuidx}"
+            for tpuidx, _ in enumerate(
+                filter(lambda dev: dev.device_type == "TPU", devs)
+            )
+        ],
+        *[
             f"/GPU:{gpuidx}"
             for gpuidx, _ in enumerate(
                 filter(lambda dev: dev.device_type == "GPU", devs)
@@ -105,6 +111,7 @@ def main():
     cpucount = os.cpu_count()
     devs = tf.config.get_visible_devices()
     gpucount = len(list(filter(lambda dev: dev.device_type == "GPU", devs)))
+    tpucount = len(list(filter(lambda dev: dev.device_type == "TPU", devs)))
 
     config, _ = configuretf()
 
@@ -118,6 +125,7 @@ def main():
                 "argv: '" + "' '".join(sys.argv) + "'",
                 f"cpu count: {cpucount}",
                 f"gpu count: {gpucount}",
+                f"tpu count: {tpucount}",
                 f"tensorflow version: {tf.__version__}",
                 f"tensorflow visible devices: {devs}",
                 "tensorflow config:\n\t\t" + "\n\t\t".join(str(config).splitlines()),
