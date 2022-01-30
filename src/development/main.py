@@ -37,24 +37,9 @@ def deploysegment(files, devs):
     loginfo("Deploying segmentation workers.")
 
     devnames = [
-        *[
-            f"/TPU:{tpuidx}"
-            for tpuidx, _ in enumerate(
-                filter(lambda dev: dev.device_type == "TPU", devs)
-            )
-        ],
-        *[
-            f"/GPU:{gpuidx}"
-            for gpuidx, _ in enumerate(
-                filter(lambda dev: dev.device_type == "GPU", devs)
-            )
-        ],
-        *[
-            f"/CPU:{cpuidx}"
-            for cpuidx, _ in enumerate(
-                filter(lambda dev: dev.device_type == "CPU", devs)
-            )
-        ],
+        f"/{devtype}:{idx}"
+        for devtype in ["TPU", "GPU", "CPU"]
+        for idx, _ in enumerate(filter(lambda dev: dev.device_type == devtype, devs))
     ]
 
     inqueue = mp.Queue()
