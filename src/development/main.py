@@ -48,9 +48,10 @@ def deploysegment(files, devs):
 
     outqueue = mp.Queue()
 
-    # TODO: use all devices simultaneously
-    for d in devnames:
-        workers.segment(d, inqueue, outqueue)
+    # # TODO: use all devices simultaneously
+    # for d in devnames:
+    #     workers.segment(d, inqueue, outqueue)
+    workers.segment(devnames[0], inqueue, outqueue)
 
     loginfo(f"Total files processed: {outqueue.qsize()}")
 
