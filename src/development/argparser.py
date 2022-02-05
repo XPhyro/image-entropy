@@ -10,6 +10,13 @@ def getargs():
     requiredgroup = parser.add_argument_group("required arguments")
     optionalgroup = parser.add_argument_group("optional arguments")
 
+    requiredgroup.add_argument(
+        "-a",
+        "--semantic-model-ade20k",
+        help="tensorflow semantic segmentation Ade20k model to use.",
+        default="",
+    )
+
     optionalgroup.add_argument(
         "-f",
         "--infer-speed",
@@ -27,17 +34,17 @@ def getargs():
     )
 
     requiredgroup.add_argument(
-        "-M",
-        "--semantic-model",
-        help="tensorflow semantic segmentation model to use.",
-        default="",
-    )
-
-    requiredgroup.add_argument(
         "-m",
         "--instance-model",
         help="tensorflow instance segmentation model to use.",
         required=True,
+    )
+
+    requiredgroup.add_argument(
+        "-p",
+        "--semantic-model-pascalvoc",
+        help="tensorflow semantic segmentation Pascalvoc model to use.",
+        default="",
     )
 
     optionalgroup.add_argument(

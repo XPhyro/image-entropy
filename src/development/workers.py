@@ -16,7 +16,7 @@ import consts
 import util
 
 args = getargs()
-if args.semantic_model:
+if args.semantic_model_ade20k or args.semantic_model_pascalvoc:
     from pixellib.semantic import semantic_segmentation
 
 
@@ -161,13 +161,14 @@ def segment(devname, inqueue, outqueue):
         loginfo(f"{devname}: Loading model {args.instance_model}.")
         instancesegmenter.load_model(args.instance_model)
 
-        if args.semantic_model:
-            loginfo(
-                f"{devname}: Initialising semantic segmenter "
-                + f"with {args.infer_speed} speed."
-            )
+        if args.semantic_model_ade20k or args.semantic_model_pascalvoc:
             semanticsegmenter = semantic_segmentation()
-            semanticsegmenter.load_ade20k_model(args.semantic_model)
+            if args.semantic_model_ade20k:
+                loginfo(f"{devname}: Loading model {args.semantic_model_ade20k}.")
+                semanticsegmenter.load_ade20k_model(args.semantic_model_ade20k)
+            if args.semantic_model_pascalvoc:
+                loginfo(f"{devname}: Loading model {args.semantic_model_pascalvoc}.")
+                semanticsegmenter.load_pascalvoc_model(args.semantic_model_pascalvoc)
 
         while True:
             try:
@@ -192,10 +193,16 @@ def segment(devname, inqueue, outqueue):
                 )
             )
 
-            if args.semantic_model:
+            if args.semantic_model_ade20k:
                 semanticsegmenter.segmentAsAde20k(
                     fl,
-                    output_image_name=f"{parentdir}/semantic-segmentation.png",
+                    output_image_name=f"{parentdir}/semantic-segmentation-ade20k.png",
+                    overlay=True,
+                )
+            if args.semantic_model_pascalvoc:
+                semanticsegmenter.segmentAsPascalvoc(
+                    fl,
+                    output_image_name=f"{parentdir}/semantic-segmentation-pascalvoc.png",
                     overlay=True,
                 )
 
