@@ -7,7 +7,6 @@ import cv2 as cv
 import numpy as np
 import tensorflow as tf
 
-from pixellib.instance import instance_segmentation
 from pycocotools import mask as coco
 
 from argparser import getargs
@@ -16,7 +15,9 @@ import consts
 import util
 
 args = getargs()
-if args.semantic_model_ade20k or args.semantic_model_pascalvoc:
+if args.instance_model_maskrcnn:
+    from pixellib.instance import instance_segmentation
+elif args.semantic_model_ade20k or args.semantic_model_pascalvoc:
     from pixellib.semantic import semantic_segmentation
 
 
@@ -153,22 +154,40 @@ def entropy(idx, fl, segmentation):
 
 def segment(devname, inqueue, outqueue):
     with tf.device(devname):
-        loginfo(
-            f"{devname}: Initialising instance segmenter "
-            + f"with {args.infer_speed} speed."
-        )
-        instancesegmenter = instance_segmentation(infer_speed=args.infer_speed)
-        loginfo(f"{devname}: Loading model {args.instance_model}.")
-        instancesegmenter.load_model(args.instance_model)
+        if args.instance_model_maskrcnn:
+            loginfo(
+                f"{devname}: Initialising instance segmenter "
+                + f"with {args.infer_speed} speed."
+            )
+            instancesegmenter = instance_segmentation(infer_speed=args.infer_speed)
 
-        if args.semantic_model_ade20k or args.semantic_model_pascalvoc:
+            loginfo(f"{devname}: Loading model {args.instance_model_maskrcnn}.")
+            instancesegmenter.load_model(args.instance_model_maskrcnn)
+            getsegmented = lambda fl, parentdir: instancesegmenter.segmentImage(
+                fl,
+                output_image_name=f"{parentdir}/segmentation-instance-maskrcnn.png",
+                show_bboxes=True,
+            )
+        else:
+            loginfo(f"{devname}: Initialising semantic segmenter.")
             semanticsegmenter = semantic_segmentation()
+
             if args.semantic_model_ade20k:
                 loginfo(f"{devname}: Loading model {args.semantic_model_ade20k}.")
                 semanticsegmenter.load_ade20k_model(args.semantic_model_ade20k)
-            if args.semantic_model_pascalvoc:
+                getsegmented = lambda fl, parentdir: semanticsegmenter.segmentAsAde20k(
+                    fl,
+                    output_image_name=f"{parentdir}/segmentation-semantic-ade20k.png",
+                    overlay=True,
+                )
+            else:
                 loginfo(f"{devname}: Loading model {args.semantic_model_pascalvoc}.")
                 semanticsegmenter.load_pascalvoc_model(args.semantic_model_pascalvoc)
+                getsegmented = lambda fl, parentdir: semanticsegmenter.segmentAsPascalvoc(
+                    fl,
+                    output_image_name=f"{parentdir}/segmentation-semantic-pascalvoc.png",
+                    overlay=True,
+                )
 
         while True:
             try:
@@ -182,29 +201,7 @@ def segment(devname, inqueue, outqueue):
 
             util.makedirs(parentdir)
 
-            outqueue.put(
-                (
-                    idx,
-                    instancesegmenter.segmentImage(
-                        fl,
-                        output_image_name=f"{parentdir}/instance-segmentation.png",
-                        show_bboxes=True,
-                    ),
-                )
-            )
-
-            if args.semantic_model_ade20k:
-                semanticsegmenter.segmentAsAde20k(
-                    fl,
-                    output_image_name=f"{parentdir}/semantic-segmentation-ade20k.png",
-                    overlay=True,
-                )
-            if args.semantic_model_pascalvoc:
-                semanticsegmenter.segmentAsPascalvoc(
-                    fl,
-                    output_image_name=f"{parentdir}/semantic-segmentation-pascalvoc.png",
-                    overlay=True,
-                )
+            outqueue.put((idx, getsegmented(fl, parentdir)))
 
             loginfo(
                 f"{devname}: Done processing file {idx} - {fl}",

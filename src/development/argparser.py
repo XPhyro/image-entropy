@@ -1,5 +1,7 @@
 from argparse import ArgumentParser, ArgumentTypeError
 
+from util import die
+
 
 def getargs():
     if hasattr(getargs, "args"):
@@ -7,14 +9,13 @@ def getargs():
 
     parser = ArgumentParser(description="Find ROIs in images and write to file.")
 
-    requiredgroup = parser.add_argument_group("required arguments")
-    optionalgroup = parser.add_argument_group("optional arguments")
+    modelgroup = parser.add_mutually_exclusive_group(required=True)
+    optionalgroup = parser.add_argument_group()
 
-    requiredgroup.add_argument(
+    modelgroup.add_argument(
         "-a",
         "--semantic-model-ade20k",
         help="tensorflow semantic segmentation Ade20k model to use.",
-        default="",
     )
 
     optionalgroup.add_argument(
@@ -33,18 +34,16 @@ def getargs():
         default=11,
     )
 
-    requiredgroup.add_argument(
+    modelgroup.add_argument(
         "-m",
-        "--instance-model",
-        help="tensorflow instance segmentation model to use.",
-        required=True,
+        "--instance-model-maskrcnn",
+        help="tensorflow instance segmentation Mask R-CNN model to use.",
     )
 
-    requiredgroup.add_argument(
+    modelgroup.add_argument(
         "-p",
         "--semantic-model-pascalvoc",
         help="tensorflow semantic segmentation Pascalvoc model to use.",
-        default="",
     )
 
     optionalgroup.add_argument(
@@ -85,6 +84,14 @@ def getargs():
     )
 
     getargs.args = parser.parse_args()
+
+    if (
+        not getargs.args.instance_model_maskrcnn
+        and not getargs.args.semantic_model_ade20k
+        and not getargs.args.semantic_model_pascalvoc
+    ):
+        die("model path cannot be empty")
+
     return getargs.args
 
 
