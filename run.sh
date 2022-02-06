@@ -3,28 +3,41 @@
 set -x
 exec 2>&1
 
+logerrq() {
+    printf "%s\n" >&2
+    exit 1
+}
+
 optfilter=1
-unset pythonpath
-while getopts "hp:s" OPT; do
+unset pythonpath optmodel
+while getopts "ahmP:ps" OPT; do
     case "$OPT" in
+        a) optmodel="ade20k";;
         h)
             printf "%s" \
-"usage: $0 [-h] [-s] [ARG [ARG ...]]
+"usage: $0 [-a] [-h] [-m] [-P] [-p] [-s] [ARG [ARG ...]] -- [ARG [ARG ...]]
 
 Quickly run the Python project using pre-set arguments.
 
+   -a        enable Ade20k semantic segmentation
    -h        show this help message and exit
-   -p PATH   path to Python executable
+   -m        enable Mask R-CNN instance segmentation
+   -P PATH   path to Python executable
+   -p        enable Pascalvoc semantic segmentation
    -s        do not filter output
 "
             exit 0
             ;;
-        p) pythonpath="$OPT";;
+        m) optmodel="maskrcnn";;
+        P) pythonpath="$OPT";;
+        p) optmodel="pascalvoc";;
         s) optfilter=0;;
         *) printf "Invalid option given: %s\n" "$OPT"; exit 1;;
     esac
 done
 shift "$((OPTIND - 1))"
+
+[ -z "$optmodel" ] && logerrq "One of -a, -m or -p must be given.\n"
 
 if [ "$optfilter" -ne 0 ]; then
     if command -v afgrep > /dev/null 2>&1; then
@@ -47,17 +60,38 @@ fi
     || pythonpath="$(command -v python3.7 2>&1)" \
     || pythonpath="$(command -v python3 2>&1)" \
     || pythonpath="$(command -v python 2>&1)" \
-    || {
-        printf "Could not find a suitable executable for Python. Supply one with -p option.\n"
-        exit 1
-    }
+    || logerrq "Could not find a suitable executable for Python. Supply one with -p option.\n"
 
 if [ "$#" -ne 0 ]; then
     perf stat unbuffer "$pythonpath" src/development/main.py "$@"
 else
-    perf stat unbuffer "$pythonpath" src/development/main.py -k 15 -t 0.995 -s 0.8 -S \
-        -a "$(find . -mindepth 1 -maxdepth 1 -type f -name "semantic*ade20k*.h5" -print0 | head -n 1 -z)" \
-        -m "$(find . -mindepth 1 -maxdepth 1 -type f -name "instance*.h5" -print0 | head -n 1 -z)" \
-        -p "$(find . -mindepth 1 -maxdepth 1 -type f -name "semantic*pascalvoc*.h5" -print0 | head -n 1 -z)" \
-        data/*
+    case "$optmodel" in
+        ade20k)
+            opt="-a"
+            model="$(
+                find . -mindepth 1 -maxdepth 1 -type f -name "semantic*ade20k*.h5" -print0 \
+                    | head -n 1 -z
+            )"
+            datadir="data/color"
+            ;;
+        maskrcnn)
+            opt="-m"
+            model="$(
+                find . -mindepth 1 -maxdepth 1 -type f -name "instance*mask*rcnn*.h5" -print0 \
+                    | head -n 1 -z
+            )"
+            datadir="data/all"
+            ;;
+        pascalvoc)
+            opt="-p"
+            model="$(
+                find . -mindepth 1 -maxdepth 1 -type f -name "semantic*pascalvoc*.h5" -print0 \
+                    | head -n 1 -z
+            )"
+            datadir="data/color"
+            ;;
+    esac
+    perf stat unbuffer \
+        "$pythonpath" src/development/main.py \
+            -k 15 -t 0.995 -s 0.8 -S "$opt" "$model" "$datadir"/*
 fi | filter
