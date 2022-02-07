@@ -4,7 +4,7 @@ set -x
 exec 2>&1
 
 logerrq() {
-    printf "%s\n" >&2
+    printf "%s\n" "$@" >&2
     exit 1
 }
 
