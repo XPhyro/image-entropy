@@ -10,7 +10,7 @@ logerrq() {
 
 optfilter=1
 unset pythonpath optmodel
-while getopts "ahmP:ps" OPT; do
+while getopts "ahP:ps" OPT; do
     case "$OPT" in
         a) optmodel="ade20k";;
         h)
@@ -21,7 +21,6 @@ Quickly run the Python project using pre-set arguments.
 
    -a        enable Ade20k semantic segmentation
    -h        show this help message and exit
-   -m        enable Mask R-CNN instance segmentation
    -P PATH   path to Python executable
    -p        enable Pascalvoc semantic segmentation
    -s        do not filter output
@@ -73,14 +72,6 @@ else
                     | head -n 1 -z
             )"
             datadir="data/color"
-            ;;
-        maskrcnn)
-            opt="-m"
-            model="$(
-                find . -mindepth 1 -maxdepth 1 -type f -name "instance*mask*rcnn*.h5" -print0 \
-                    | head -n 1 -z
-            )"
-            datadir="data/all"
             ;;
         pascalvoc)
             opt="-p"

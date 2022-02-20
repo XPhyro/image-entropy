@@ -35,12 +35,6 @@ def getargs():
     )
 
     modelgroup.add_argument(
-        "-m",
-        "--instance-model-maskrcnn",
-        help="tensorflow instance segmentation Mask R-CNN model to use.",
-    )
-
-    modelgroup.add_argument(
         "-p",
         "--semantic-model-pascalvoc",
         help="tensorflow semantic segmentation Pascalvoc model to use.",
@@ -86,8 +80,7 @@ def getargs():
     getargs.args = parser.parse_args()
 
     if (
-        not getargs.args.instance_model_maskrcnn
-        and not getargs.args.semantic_model_ade20k
+        not getargs.args.semantic_model_ade20k
         and not getargs.args.semantic_model_pascalvoc
     ):
         die("model path cannot be empty")
