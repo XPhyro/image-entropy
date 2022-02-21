@@ -12,6 +12,9 @@
 - Before entropy and other computations, segment all images, then distribute the
   segmentations to the deployed CPU processes.
 - Make multi-device segmentation simultaneous instead of consecutive.
+- Isolate TensorFlow configuration and segmentation worker(s) from the main
+  process to force TensorFlow to free device memory. Currently, the TPU/GPU/CPU
+  memory stays allocated to the main process even after the segmentation.
 
 
 # Research
