@@ -90,8 +90,8 @@ def entropy(idx, fl, segmentation):
         roikerngradblurred = gaussian_filter(roikerngrad, sigma=args.sigma)
         roikerngradblurred[np.nonzero(roikerngradblurred)] = 255
 
-    entmasksource = roigradblurred
-    entmask = np.asfortranarray(roigradblurred).astype(np.uint8)
+    entmasksource = roigrad
+    entmask = np.asfortranarray(entmasksource).astype(np.uint8)
 
     if args.save_images:
         entmaskcolour = cv.cvtColor(entmasksource.astype(np.uint8), cv.COLOR_GRAY2BGR)
@@ -120,7 +120,62 @@ def entropy(idx, fl, segmentation):
                 os.remove(path)
             cv.imwrite(path, data)
 
-    # TODO: consider segmentation
+    # PixelLib's semantic segmentation is bugged in multiple ways:
+    #     1. It does not return class masks correctly.
+    #     2. It does not retain class colour order.
+    #
+    # segdata.keys() := dict_keys(['class_ids', 'class_names', 'class_colors', 'masks', 'ratios'])
+    # segmap.shape = (w, h, 3)
+    segid, (segdata, segmap) = segmentation
+
+    loginfo(
+        f"{idx} - {fl} - segmap.shape = {segmap.shape}",
+        f"{idx} - {fl} - grad.shape = {grad.shape}",
+        f"{idx} - {fl} - segdata.keys() = {segdata.keys()}",
+        f"{idx} - {fl} - segdata['class_names'] = {segdata['class_names']}",
+    )
+
+    # # The following is a workaround for (1), but not (2).
+    # for cid, cname, ccolour in zip(
+    #     segdata["class_ids"],
+    #     segdata["class_names"],
+    #     segdata["class_colors"],
+    # ):
+    #     cmask = np.copy(segmap)
+    #     loginfo(f"{idx} - {fl} - cmask.shape = {cmask.shape}")
+    #     for rowidx, row in enumerate(cmask):
+    #         for colidx, elem in enumerate(row):
+    #             iscorrectmask = True
+    #             for e, c in zip(elem, ccolour):
+    #                 if e != c:
+    #                     cmask[rowidx][colidx] = [0, 0, 0]
+    #                     iscorrectmask = False
+    #                     break
+    #             if iscorrectmask:
+    #                 cmask[rowidx][colidx] = [255, 255, 255]
+    #     if args.save_images:
+    #         cv.imwrite(f"{parentdir}/map-{cid}-{cname}.png", cmask)
+
+    # The following is a workaround for both (1) and (2).
+    objmasks = {}
+    for rowidx, row in enumerate(segmap):
+        for colidx, elem in enumerate(row):
+            elemint = elem[0] + (elem[1] << 8) + (elem[2] << 16)
+            if elemint not in objmasks.keys():
+                objmasks[elemint] = np.zeros(grad.shape).astype(bool)
+            else:
+                objmasks[elemint][rowidx][colidx] = True
+    objs = []
+    for key, val in objmasks.items():
+        obj = np.copy(segmap)
+        obj[np.invert(val)] = [0, 0, 0]
+
+        objs.append(obj)
+
+        if args.save_images:
+            cv.imwrite(f"{parentdir}/mask-{key}.png", obj)
+
+    # TODO: combine `objs` and/or `objmasks` with `grad` and compute the entropies of the objects.
 
     encodedmask = coco.encode(entmask)
     size = encodedmask["size"]
@@ -158,7 +213,7 @@ def segment(devname, inqueue, outqueue):
             getsegmented = lambda fl, parentdir: semanticsegmenter.segmentAsAde20k(
                 fl,
                 output_image_name=f"{parentdir}/segmentation-semantic-ade20k.png",
-                overlay=True,
+                overlay=False,
             )
         else:
             loginfo(f"{devname}: Loading model {args.semantic_model_pascalvoc}.")
@@ -166,7 +221,7 @@ def segment(devname, inqueue, outqueue):
             getsegmented = lambda fl, parentdir: semanticsegmenter.segmentAsPascalvoc(
                 fl,
                 output_image_name=f"{parentdir}/segmentation-semantic-pascalvoc.png",
-                overlay=True,
+                overlay=False,
             )
 
         while True:
