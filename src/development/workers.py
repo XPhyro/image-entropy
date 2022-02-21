@@ -17,6 +17,8 @@ import util
 
 
 def entropy(idx, fl, segmentation):
+    parentdir = f"results/{util.basename(fl)}"
+
     loginfo(f"CPU: Processing file {idx} - {fl}")
 
     ### read
@@ -93,33 +95,6 @@ def entropy(idx, fl, segmentation):
     entmasksource = roigrad
     entmask = np.asfortranarray(entmasksource).astype(np.uint8)
 
-    if args.save_images:
-        entmaskcolour = cv.cvtColor(entmasksource.astype(np.uint8), cv.COLOR_GRAY2BGR)
-        entmaskcolour[:, :, 0:2] = 0
-        overlay = np.bitwise_or(entmaskcolour, inputimg)
-
-        results = (
-            (grad, "gradient"),
-            (kerngrad, "gradient-convolved"),
-            (roigrad, "roi"),
-            (roigradblurred, "roi-blurred"),
-            (roikerngrad, "roi-convolved"),
-            (roikerngradblurred, "roi-convolved-blurred"),
-            (entmask, "coco-mask"),
-            (overlay, "coco-mask-overlayed"),
-        )
-
-        parentdir = f"results/{util.basename(fl)}"
-
-        util.makedirs(parentdir)
-
-        for r in results:
-            data, name = r
-            path = f"{parentdir}/{name}.png"
-            if os.path.exists(path):
-                os.remove(path)
-            cv.imwrite(path, data)
-
     # PixelLib's semantic segmentation is bugged in multiple ways:
     #     1. It does not return class masks correctly.
     #     2. It does not retain class colour order.
@@ -151,9 +126,6 @@ def entropy(idx, fl, segmentation):
 
         objimgs[key] = obj
 
-        if args.save_images:
-            cv.imwrite(f"{parentdir}/mask-{key}.png", obj)
-
     objentmaps = {}
     for key, mask in objmasks.items():
         objentmaps[key] = (np.multiply(fx, mask), np.multiply(fy, mask))
@@ -176,13 +148,59 @@ def entropy(idx, fl, segmentation):
 
     roiobj = max(objents, key=objents.get)
 
+    objentmasksource = grad
+    objentmasktopsource = roigrad
+
+    objentmaskimg = (
+        np.logical_and(objentmasksource, objmasks[roiobj]).astype(np.uint8) * 255
+    )
+    objentmasktopimg = (
+        np.logical_and(objentmasktopsource, objmasks[roiobj]).astype(np.uint8) * 255
+    )
+
+    objentmask = np.asfortranarray(objentmaskimg)
+
     if args.save_images:
-        cv.imwrite(
-            f"{parentdir}/roi-mask-{roiobj}-{objents[roiobj]}.png",
-            objimgs[roiobj],
+        entmaskcolour = cv.cvtColor(entmasksource.astype(np.uint8), cv.COLOR_GRAY2BGR)
+        entmaskcolour[:, :, 0:2] = 0
+        entmaskoverlay = np.bitwise_or(entmaskcolour, inputimg)
+
+        objentmaskcolour = cv.cvtColor(objentmaskimg, cv.COLOR_GRAY2BGR)
+        objentmaskcolour[:, :, 0:2] = 0
+        objentmaskoverlay = np.bitwise_or(objentmaskcolour, inputimg)
+
+        objentmasktopcolour = cv.cvtColor(objentmasktopimg, cv.COLOR_GRAY2BGR)
+        objentmasktopcolour[:, :, 0:2] = 0
+        objentmasktopoverlay = np.bitwise_or(objentmasktopcolour, inputimg)
+
+        results = (
+            (grad, "gradient"),
+            (kerngrad, "gradient-convolved"),
+            (roigrad, "roi"),
+            (roigradblurred, "roi-blurred"),
+            (roikerngrad, "roi-convolved"),
+            (roikerngradblurred, "roi-convolved-blurred"),
+            (entmask, "coco-mask"),
+            (entmaskoverlay, "coco-mask-overlayed"),
+            (objimgs[roiobj], "roi-mask-{roiobj}-{objents[roiobj]}"),
+            (objentmaskimg, "coco-obj-mask"),
+            (objentmasktopimg, "coco-obj-mask-top"),
+            (objentmaskoverlay, "coco-obj-mask-overlayed"),
+            (objentmasktopoverlay, "coco-obj-mask-top-overlayed"),
         )
 
-    encodedmask = coco.encode(entmask)
+        util.makedirs(parentdir)
+
+        for r in results:
+            data, name = r
+            path = f"{parentdir}/{name}.png"
+            cv.imwrite(path, data)
+
+        util.makedirs(f"{parentdir}/masks")
+        for key, obj in objimgs.items():
+            cv.imwrite(f"{parentdir}/masks/mask-{key}.png", obj)
+
+    encodedmask = coco.encode(objentmask)
     size = encodedmask["size"]
     counts = list(encodedmask["counts"])
     # area = float(np.count_nonzero(entmasksource))
