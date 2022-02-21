@@ -165,17 +165,43 @@ def entropy(idx, fl, segmentation):
                 objmasks[elemint] = np.zeros(grad.shape).astype(bool)
             else:
                 objmasks[elemint][rowidx][colidx] = True
-    objs = []
+    objimgs = {}
     for key, val in objmasks.items():
         obj = np.copy(segmap)
         obj[np.invert(val)] = [0, 0, 0]
 
-        objs.append(obj)
+        objimgs[key] = obj
 
         if args.save_images:
             cv.imwrite(f"{parentdir}/mask-{key}.png", obj)
 
-    # TODO: combine `objs` and/or `objmasks` with `grad` and compute the entropies of the objects.
+    objentmaps = {}
+    for key, mask in objmasks.items():
+        objentmaps[key] = (np.multiply(fx, mask), np.multiply(fy, mask))
+    objents = {}
+    for key, (objfx, objfy) in objentmaps.items():
+        hist, _, _ = np.histogram2d(
+            objfx.flatten(),
+            objfy.flatten(),
+            bins=255,
+            range=[[-jrng, jrng], [-jrng, jrng]],
+        )
+
+        deldensity = hist / np.sum(hist)
+        deldensity = deldensity * -np.ma.log2(deldensity)
+        entropy = np.sum(deldensity) / 2
+
+        objents[key] = entropy
+
+    loginfo(f"{idx} - {fl} - entropies = {objents}")
+
+    roiobj = max(objents, key=objents.get)
+
+    if args.save_images:
+        cv.imwrite(
+            f"{parentdir}/roi-mask-{roiobj}-{objents[roiobj]}.png",
+            objimgs[roiobj],
+        )
 
     encodedmask = coco.encode(entmask)
     size = encodedmask["size"]
