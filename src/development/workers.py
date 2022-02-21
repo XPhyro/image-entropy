@@ -135,27 +135,6 @@ def entropy(idx, fl, segmentation):
         f"{idx} - {fl} - segdata['class_names'] = {segdata['class_names']}",
     )
 
-    # # The following is a workaround for (1), but not (2).
-    # for cid, cname, ccolour in zip(
-    #     segdata["class_ids"],
-    #     segdata["class_names"],
-    #     segdata["class_colors"],
-    # ):
-    #     cmask = np.copy(segmap)
-    #     loginfo(f"{idx} - {fl} - cmask.shape = {cmask.shape}")
-    #     for rowidx, row in enumerate(cmask):
-    #         for colidx, elem in enumerate(row):
-    #             iscorrectmask = True
-    #             for e, c in zip(elem, ccolour):
-    #                 if e != c:
-    #                     cmask[rowidx][colidx] = [0, 0, 0]
-    #                     iscorrectmask = False
-    #                     break
-    #             if iscorrectmask:
-    #                 cmask[rowidx][colidx] = [255, 255, 255]
-    #     if args.save_images:
-    #         cv.imwrite(f"{parentdir}/map-{cid}-{cname}.png", cmask)
-
     # The following is a workaround for both (1) and (2).
     objmasks = {}
     for rowidx, row in enumerate(segmap):
