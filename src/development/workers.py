@@ -126,7 +126,7 @@ def entropy(idx, fl, segmentation):
     #
     # segdata.keys() := dict_keys(['class_ids', 'class_names', 'class_colors', 'masks', 'ratios'])
     # segmap.shape = (w, h, 3)
-    segid, (segdata, segmap) = segmentation
+    _, (segdata, segmap) = segmentation
 
     loginfo(
         f"{idx} - {fl} - segmap.shape = {segmap.shape}",

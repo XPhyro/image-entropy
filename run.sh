@@ -27,7 +27,6 @@ Quickly run the Python project using pre-set arguments.
 "
             exit 0
             ;;
-        m) optmodel="maskrcnn";;
         P) pythonpath="$OPT";;
         p) optmodel="pascalvoc";;
         s) optfilter=0;;
