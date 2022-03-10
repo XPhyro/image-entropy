@@ -1,5 +1,4 @@
 from multiprocessing.queues import Empty as QueueEmptyError
-import os
 
 from scipy import stats
 from scipy.ndimage.filters import gaussian_filter
@@ -140,9 +139,9 @@ def entropy(idx, fl, segmentation):
 
         deldensity = hist / np.sum(hist)
         deldensity = deldensity * -np.ma.log2(deldensity)
-        entropy = np.sum(deldensity) / 2
+        ent = np.sum(deldensity) / 2
 
-        objents[key] = entropy
+        objents[key] = ent
 
     loginfo(f"{idx} - {fl} - entropies = {objents}")
 
