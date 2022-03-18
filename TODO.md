@@ -1,4 +1,15 @@
+# All
+- Add a `CITATION.cff` file.
+- Add sub-readmes.
+
+
 # Development
+
+## Machine Learning
+- RLE decoder
+- Write entropy to COCO output
+- Write all textures instead of the one with the most entropy
+- See if we need a background category
 
 ## Features
 - Automatically determine sigma.
@@ -40,10 +51,3 @@
 
 ## Other
 - Write a function that *regional*ises methods.
-
-
-# All
-- Add a `CITATION.cff` file.
-- Add a global readme.
-- Add sub-readmes.
-- Add global and local `requirements.txt` files.
