@@ -6,7 +6,7 @@
 # Development
 
 ## Machine Learning
-- RLE decoder
+- Overlay the decoded mask onto the original image
 - See if we need a background category
 
 ## Features
