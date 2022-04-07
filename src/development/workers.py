@@ -217,7 +217,7 @@ def entropy(idx, fl, segmentation):
                 "iscrowd": 1,
                 "segmentation": {
                     "size": size,
-                    "counts": counts,
+                    "counts": encodedmask["counts"].decode("utf-8"),
                 },
                 "image_id": idx + 1,
                 "area": area,

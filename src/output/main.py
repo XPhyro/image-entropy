@@ -50,9 +50,9 @@ def main():
             imgid = ann["image_id"]
             segm = ann["segmentation"]
             size = segm["size"]
-            counts = segm["counts"]
+            counts = bytes(segm["counts"], "utf-8")
 
-            encodedmask = coco.frPyObjects([counts], size[0], size[1])
+            encodedmask = {"size": size, "counts": counts}
             mask = coco.decode(encodedmask)
 
             cv.imwrite(

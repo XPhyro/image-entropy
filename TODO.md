@@ -4,9 +4,7 @@
 
 
 # Output
-
-## Bugs
-- Decoded mask is incorrect
+None.
 
 
 # Development
