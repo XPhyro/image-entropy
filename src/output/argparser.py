@@ -1,4 +1,4 @@
-from argparse import ArgumentParser, ArgumentTypeError
+from argparse import ArgumentParser
 
 
 def getargs():

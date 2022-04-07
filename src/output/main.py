@@ -2,8 +2,8 @@
 # See `./main.py --help`.
 
 
-from base64 import b64decode
 import json
+import sys
 
 import numpy as np
 
