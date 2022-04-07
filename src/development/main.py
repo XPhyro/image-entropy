@@ -127,6 +127,7 @@ def main():
     segresults.sort(key=itemgetter(0))
 
     entresults = deployentropy(files, cpucount, segresults)
+    entresults = [elem for lst in entresults for elem in lst]
     entresults = list(filter(lambda x: x is not None, entresults))
 
     cputimepassed = time.process_time() - cputimepassed

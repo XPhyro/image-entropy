@@ -145,79 +145,86 @@ def entropy(idx, fl, segmentation):
 
     loginfo(f"{idx} - {fl} - entropies = {objents}")
 
-    roiobj = max(objents, key=objents.get)
+    ret = []
+    for entidx, roiobj in enumerate(objents.keys()):
+        objentmasksource = grad
+        objentmasktopsource = roigrad
 
-    objentmasksource = grad
-    objentmasktopsource = roigrad
-
-    objentmaskimg = (
-        np.logical_and(objentmasksource, objmasks[roiobj]).astype(np.uint8) * 255
-    )
-    objentmasktopimg = (
-        np.logical_and(objentmasktopsource, objmasks[roiobj]).astype(np.uint8) * 255
-    )
-
-    objentmask = np.asfortranarray(objentmaskimg)
-
-    if args.save_images:
-        entmaskcolour = cv.cvtColor(entmasksource.astype(np.uint8), cv.COLOR_GRAY2BGR)
-        entmaskcolour[:, :, 0:2] = 0
-        entmaskoverlay = np.bitwise_or(entmaskcolour, inputimg)
-
-        objentmaskcolour = cv.cvtColor(objentmaskimg, cv.COLOR_GRAY2BGR)
-        objentmaskcolour[:, :, 0:2] = 0
-        objentmaskoverlay = np.bitwise_or(objentmaskcolour, inputimg)
-
-        objentmasktopcolour = cv.cvtColor(objentmasktopimg, cv.COLOR_GRAY2BGR)
-        objentmasktopcolour[:, :, 0:2] = 0
-        objentmasktopoverlay = np.bitwise_or(objentmasktopcolour, inputimg)
-
-        results = (
-            (grad, "gradient"),
-            (kerngrad, "gradient-convolved"),
-            (roigrad, "roi"),
-            (roigradblurred, "roi-blurred"),
-            (roikerngrad, "roi-convolved"),
-            (roikerngradblurred, "roi-convolved-blurred"),
-            (entmask, "coco-mask"),
-            (entmaskoverlay, "coco-mask-overlayed"),
-            (objimgs[roiobj], f"roi-mask-{roiobj}-{objents[roiobj]}"),
-            (objentmaskimg, "coco-obj-mask"),
-            (objentmasktopimg, "coco-obj-mask-top"),
-            (objentmaskoverlay, "coco-obj-mask-overlayed"),
-            (objentmasktopoverlay, "coco-obj-mask-top-overlayed"),
+        objentmaskimg = (
+            np.logical_and(objentmasksource, objmasks[roiobj]).astype(np.uint8) * 255
+        )
+        objentmasktopimg = (
+            np.logical_and(objentmasktopsource, objmasks[roiobj]).astype(np.uint8) * 255
         )
 
-        util.makedirs(parentdir)
+        objentmask = np.asfortranarray(objentmaskimg)
 
-        for r in results:
-            data, name = r
-            path = f"{parentdir}/{name}.png"
-            cv.imwrite(path, data)
+        if args.save_images:
+            entmaskcolour = cv.cvtColor(
+                entmasksource.astype(np.uint8), cv.COLOR_GRAY2BGR
+            )
+            entmaskcolour[:, :, 0:2] = 0
+            entmaskoverlay = np.bitwise_or(entmaskcolour, inputimg)
 
-        util.makedirs(f"{parentdir}/masks")
-        for key, obj in objimgs.items():
-            cv.imwrite(f"{parentdir}/masks/mask-{key}.png", obj)
+            objentmaskcolour = cv.cvtColor(objentmaskimg, cv.COLOR_GRAY2BGR)
+            objentmaskcolour[:, :, 0:2] = 0
+            objentmaskoverlay = np.bitwise_or(objentmaskcolour, inputimg)
 
-    encodedmask = coco.encode(objentmask)
-    size = encodedmask["size"]
-    counts = list(encodedmask["counts"])
-    # area = float(np.count_nonzero(entmasksource))
-    area = float(coco.area(encodedmask))
-    bbox = list(coco.toBbox(encodedmask))
+            objentmasktopcolour = cv.cvtColor(objentmasktopimg, cv.COLOR_GRAY2BGR)
+            objentmasktopcolour[:, :, 0:2] = 0
+            objentmasktopoverlay = np.bitwise_or(objentmasktopcolour, inputimg)
 
-    ret = {
-        "id": idx + 1 + 1000000000,
-        "category_id": 1,
-        "iscrowd": 1,
-        "segmentation": {
-            "size": size,
-            "counts": counts,
-        },
-        "image_id": idx + 1,
-        "area": area,
-        "bbox": bbox,
-    }
+            results = (
+                (grad, "gradient"),
+                (kerngrad, "gradient-convolved"),
+                (roigrad, "roi"),
+                (roigradblurred, "roi-blurred"),
+                (roikerngrad, "roi-convolved"),
+                (roikerngradblurred, "roi-convolved-blurred"),
+                (entmask, "coco-mask"),
+                (entmaskoverlay, "coco-mask-overlayed"),
+                (objimgs[roiobj], f"roi-mask-{roiobj}-{objents[roiobj]}"),
+                (objentmaskimg, "coco-obj-mask"),
+                (objentmasktopimg, "coco-obj-mask-top"),
+                (objentmaskoverlay, "coco-obj-mask-overlayed"),
+                (objentmasktopoverlay, "coco-obj-mask-top-overlayed"),
+            )
+
+            util.makedirs(parentdir)
+
+            for r in results:
+                data, name = r
+                path = f"{parentdir}/{name}.png"
+                cv.imwrite(path, data)
+
+            util.makedirs(f"{parentdir}/masks")
+            for key, obj in objimgs.items():
+                cv.imwrite(f"{parentdir}/masks/mask-{key}.png", obj)
+
+        encodedmask = coco.encode(objentmask)
+        size = encodedmask["size"]
+        counts = list(encodedmask["counts"])
+        # area = float(np.count_nonzero(entmasksource))
+        area = float(coco.area(encodedmask))
+        bbox = list(coco.toBbox(encodedmask))
+
+        ret.append(
+            {
+                # TODO: make this better. currently we only support up to 1 million
+                #       images and the index can be greater than 2**32.
+                "id": (1 + idx) * 1000000 + entidx + 1,
+                "category_id": 1,
+                "iscrowd": 1,
+                "segmentation": {
+                    "size": size,
+                    "counts": counts,
+                },
+                "image_id": idx + 1,
+                "area": area,
+                "bbox": bbox,
+                "entropy": objents[roiobj],
+            }
+        )
 
     loginfo(f"CPU: Done processing file {idx} - {fl}")
 

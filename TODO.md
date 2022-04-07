@@ -7,8 +7,6 @@
 
 ## Machine Learning
 - RLE decoder
-- Write entropy to COCO output
-- Write all textures instead of the one with the most entropy
 - See if we need a background category
 
 ## Features
