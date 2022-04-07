@@ -55,8 +55,11 @@ def main():
             encodedmask = {"size": size, "counts": counts}
             mask = coco.decode(encodedmask)
 
+            entropy = ann["entropy"]
+
             cv.imwrite(
-                f"{args.result_directory}/{imgid}-{annid}-{imgnamesbyid[imgid]}",
+                f"{args.result_directory}/"
+                + f"{imgid}-{annid - imgid * 1000000}-{entropy}-{imgnamesbyid[imgid]}",
                 mask * 255,
             )
 
