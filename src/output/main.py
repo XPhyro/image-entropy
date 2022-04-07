@@ -6,7 +6,6 @@ import json
 import sys
 
 import cv2 as cv
-import numpy as np
 
 from pycocotools import mask as coco
 
@@ -56,7 +55,10 @@ def main():
             encodedmask = coco.frPyObjects([counts], size[0], size[1])
             mask = coco.decode(encodedmask)
 
-            cv.imwrite(f"{args.result_directory}/{imgnamesbyid[imgid]}", mask * 255)
+            cv.imwrite(
+                f"{args.result_directory}/{imgid}-{annid}-{imgnamesbyid[imgid]}",
+                mask * 255,
+            )
 
     loginfo("Done.")
 
