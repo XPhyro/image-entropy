@@ -203,7 +203,8 @@ def entropy(idx, fl, segmentation):
 
         encodedmask = coco.encode(objentmask)
         size = encodedmask["size"]
-        counts = list(encodedmask["counts"])
+        # counts = list(encodedmask["counts"])
+        counts = encodedmask["counts"]
         # area = float(np.count_nonzero(entmasksource))
         area = float(coco.area(encodedmask))
         bbox = list(coco.toBbox(encodedmask))
@@ -217,7 +218,7 @@ def entropy(idx, fl, segmentation):
                 "iscrowd": 1,
                 "segmentation": {
                     "size": size,
-                    "counts": encodedmask["counts"].decode("utf-8"),
+                    "counts": counts.decode("utf-8"),
                 },
                 "image_id": idx + 1,
                 "area": area,
