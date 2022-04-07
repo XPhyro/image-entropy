@@ -159,12 +159,12 @@ def main():
         ],
         "images": [
             {
-                "id": ifl[0],
+                "id": ifl[0] + 1,
                 "license": 1,
                 "coco_url": "placeholder",
                 "flickr_url": "placeholder",
-                "width": r["segmentation"]["size"][0],
-                "height": r["segmentation"]["size"][1],
+                "width": r["segmentation"]["size"][0],  # TODO: bugged
+                "height": r["segmentation"]["size"][1],  # TODO: bugged
                 "file_name": basename(ifl[1]),
                 "date_captured": "1970-01-01 02:00:00",
             }

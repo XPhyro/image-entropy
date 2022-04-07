@@ -3,10 +3,15 @@
 - Add sub-readmes.
 
 
+# Output
+
+## Bugs
+- Decoded mask is incorrect
+
+
 # Development
 
 ## Machine Learning
-- Overlay the decoded mask onto the original image
 - See if we need a background category
 
 ## Features

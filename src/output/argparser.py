@@ -18,6 +18,20 @@ def getargs():
     )
 
     optionalgroup.add_argument(
+        "-i",
+        "--image-directory",
+        help="directory containing all annotated images.",
+        required=True,
+    )
+
+    optionalgroup.add_argument(
+        "-r",
+        "--result-directory",
+        help="directory to save results in.",
+        required=True,
+    )
+
+    optionalgroup.add_argument(
         "files",
         help="paths to the COCO JSON files.",
         metavar="FILE",

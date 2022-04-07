@@ -5,12 +5,14 @@
 import json
 import sys
 
+import cv2 as cv
 import numpy as np
 
 from pycocotools import mask as coco
 
 from argparser import getargs
 from log import loginfo
+from util import makedirs
 
 
 __author__ = "Berke Kocaoğlu"
@@ -33,27 +35,28 @@ def main():
 
         loginfo("Parsing image ID and paths.")
 
-        imagepathsbyid = {}
+        # do not read at this stage to conserve memory (and support high image counts)
+        imgpathsbyid = {}
+        imgnamesbyid = {}
         for image in cocodict["images"]:
-            imagepathsbyid[image["id"]] = image["file_name"]
+            imgid = image["id"]
+            imgpathsbyid[imgid] = f"{args.image_directory}/{image['file_name']}"
+            imgnamesbyid[imgid] = image["file_name"]
 
         loginfo("Parsing annotations.")
 
-        annotations = [
-            (
-                annotation["segmentation"]["size"],
-                annotation["segmentation"]["counts"],
-                annotation["image_id"],
-                annotation["id"],
-            )
-            for annotation in cocodict["annotations"]
-        ]
+        makedirs(args.result_directory)
+        for ann in cocodict["annotations"]:
+            annid = ann["id"]
+            imgid = ann["image_id"]
+            segm = ann["segmentation"]
+            size = segm["size"]
+            counts = segm["counts"]
 
-        for ann in annotations:
-            size = ann[0]
-            counts = ann[1]
             encodedmask = coco.frPyObjects([counts], size[0], size[1])
             mask = coco.decode(encodedmask)
+
+            cv.imwrite(f"{args.result_directory}/{imgnamesbyid[imgid]}", mask * 255)
 
     loginfo("Done.")
 
