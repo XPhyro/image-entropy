@@ -181,7 +181,7 @@ def entropy(idx, fl, segmentation):
             (roikerngradblurred, "roi-convolved-blurred"),
             (entmask, "coco-mask"),
             (entmaskoverlay, "coco-mask-overlayed"),
-            (objimgs[roiobj], "roi-mask-{roiobj}-{objents[roiobj]}"),
+            (objimgs[roiobj], f"roi-mask-{roiobj}-{objents[roiobj]}"),
             (objentmaskimg, "coco-obj-mask"),
             (objentmasktopimg, "coco-obj-mask-top"),
             (objentmaskoverlay, "coco-obj-mask-overlayed"),
