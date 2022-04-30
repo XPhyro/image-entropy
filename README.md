@@ -13,3 +13,7 @@ into a convolutional neural network. The code requires Python 3.7.
 
 All code are tested on Linux with an NVIDIA GPU. They may not work on other
 systems.
+
+# License
+Unless otherwise specified, all code in this repository are licensed under
+the MIT license. See the [LICENSE file](LICENSE) for details.
