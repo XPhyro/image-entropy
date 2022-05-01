@@ -15,7 +15,7 @@ Under `src/output/`, a decoder for `src/development/`'s output is built. The
 code requires Python >=3.6.
 
 Under `src/cnn-test/`, CNN model tests are conducted. The code requires Python
->=3.10.
+\>=3.10.
 
 All code are tested on Linux with an NVIDIA GPU. They may not work on other
 systems.
