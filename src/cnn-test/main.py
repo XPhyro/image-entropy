@@ -167,15 +167,13 @@ def cnn_advanced():
 
 
 def get_method_choice():
-    method_choice = (
-        input("Choose method [simple (s, 1), advanced (a, 2)]:\n> ").strip().lower()
-    )
-    if method_choice == "simple" or method_choice == "s" or method_choice == "1":
-        return True, cnn_simple
-    elif method_choice == "advanced" or method_choice == "a" or method_choice == "2":
-        return True, cnn_advanced
-    else:
-        return False, None
+    match input("Choose method [simple (s, 1), advanced (a, 2)]:\n> ").strip().lower():
+        case "simple" | "s" | "1":
+            return True, cnn_simple
+        case "advanced" | "a" | "2":
+            return True, cnn_advanced
+        case _:
+            return False, None
 
 
 def get_func():
