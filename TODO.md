@@ -35,8 +35,6 @@ None.
 
 # Research
 
-## Bugs
-
 ## Features
 - Evaluate the entropy on each colour channel, then join the results.
 - In `1d-kapur`, execute the threshold multiple times and get an iterative
