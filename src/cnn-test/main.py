@@ -166,21 +166,17 @@ def cnn_advanced():
     model.compile()
 
 
-def get_method_choice():
-    match input("Choose method [simple (s, 1), advanced (a, 2)]:\n> ").strip().lower():
-        case "simple" | "s" | "1":
-            return True, cnn_simple
-        case "advanced" | "a" | "2":
-            return True, cnn_advanced
-        case _:
-            return False, None
-
-
 def get_func():
     while True:
-        success, func = get_method_choice()
-        if success:
-            return func
+        match input(
+            "Choose method [simple (s, 1), advanced (a, 2)]:\n> "
+        ).strip().lower():
+            case "simple" | "s" | "1":
+                return cnn_simple
+            case "advanced" | "a" | "2":
+                return cnn_advanced
+            case _:
+                continue
 
 
 def main():
