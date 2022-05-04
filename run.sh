@@ -61,7 +61,8 @@ fi
     || logerrq "Could not find a suitable executable for Python. Supply one with -p option.\n"
 
 if [ "$#" -ne 0 ]; then
-    perf stat unbuffer "$pythonpath" src/development/main.py "$@"
+    perf stat unbuffer \
+        "$pythonpath" src/development/main.py "$@"
 else
     case "$optmodel" in
         ade20k)
