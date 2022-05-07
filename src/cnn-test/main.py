@@ -22,7 +22,7 @@ import numpy as np
 
 
 def cnn_simple():
-    from tensorflow.keras import datasets, layers, models
+    from tensorflow.keras import datasets, layers, models, losses, optimizers
     import matplotlib.pyplot as plt
 
     (train_images, train_labels), (
@@ -50,8 +50,8 @@ def cnn_simple():
     model.summary()
 
     model.compile(
-        optimizer=tf.optimizers.Adam(),
-        loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+        optimizer=optimizers.Adam(),
+        loss=losses.SparseCategoricalCrossentropy(from_logits=True),
         metrics=["accuracy"],
     )
 
@@ -68,11 +68,10 @@ def cnn_simple():
 
 
 def cnn_advanced():
-    from tensorflow.keras import Model
+    from tensorflow.keras import Model, datasets, losses, optimizers, metrics, models
     from tensorflow.keras.layers import Dense, Flatten, Conv2D
-    import tensorflow.keras as keras
 
-    mnist = tf.keras.datasets.mnist
+    mnist = datasets.mnist
 
     (x_train, y_train), (x_test, y_test) = mnist.load_data()
     x_train, x_test = x_train / 255.0, x_test / 255.0
@@ -103,15 +102,15 @@ def cnn_advanced():
 
     model = CustomModel()
 
-    loss_object = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
+    loss_object = losses.SparseCategoricalCrossentropy(from_logits=True)
 
-    optimizer = tf.keras.optimizers.Adam()
+    optimizer = optimizers.Adam()
 
-    train_loss = tf.keras.metrics.Mean(name="train_loss")
-    train_accuracy = tf.keras.metrics.SparseCategoricalAccuracy(name="train_accuracy")
+    train_loss = metrics.Mean(name="train_loss")
+    train_accuracy = metrics.SparseCategoricalAccuracy(name="train_accuracy")
 
-    test_loss = tf.keras.metrics.Mean(name="test_loss")
-    test_accuracy = tf.keras.metrics.SparseCategoricalAccuracy(name="test_accuracy")
+    test_loss = metrics.Mean(name="test_loss")
+    test_accuracy = metrics.SparseCategoricalAccuracy(name="test_accuracy")
 
     @tf.function
     def train_step(images, labels):
@@ -161,7 +160,7 @@ def cnn_advanced():
 
     model.save("custom_model", save_format="tf")
     model.summary()
-    model = keras.models.load_model("custom_model")
+    model = models.load_model("custom_model")
     model.summary()
     model.compile()
 
