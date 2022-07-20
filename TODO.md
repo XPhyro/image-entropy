@@ -1,6 +1,7 @@
 # All
 - Add a `CITATION.cff` file.
 - Add sub-readmes.
+- Set up Docker configs for each subproject.
 
 
 # CNN Test
