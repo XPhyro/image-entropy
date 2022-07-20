@@ -55,9 +55,9 @@ else
 fi
 
 [ -n "$pythonpath" ] \
-    || pythonpath="$(command -v python3.7 2>&1)" \
-    || pythonpath="$(command -v python3 2>&1)" \
-    || pythonpath="$(command -v python 2>&1)" \
+    || pythonpath="$(command -v python3.7 2> /dev/null)" \
+    || pythonpath="$(command -v python3 2> /dev/null)" \
+    || pythonpath="$(command -v python 2> /dev/null)" \
     || logerrq "Could not find a suitable executable for Python. Supply one with -p option.\n"
 
 if [ "$#" -ne 0 ]; then
