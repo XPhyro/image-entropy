@@ -33,9 +33,9 @@ def parseargs():
     )
 
     parser.add_argument(
-        "-I",
-        "--image-size",
-        help="test image size",
+        "-H",
+        "--test-height",
+        help="test image height",
         type=int,
         default=1024,
     )
@@ -92,6 +92,13 @@ def parseargs():
     )
 
     parser.add_argument(
+        "-R",
+        "--test-reshape",
+        help="execute all tests with reshaping",
+        action="store_true",
+    )
+
+    parser.add_argument(
         "-r",
         "--radius",
         help="disk radius to be used with regional methods. must be an integer greater than 2. (default: 10)",
@@ -133,6 +140,21 @@ def parseargs():
     )
 
     parser.add_argument(
+        "-q",
+        "--quiet",
+        help="do not use stdout or stdin, unless -R is given or a fatal error is faced",
+        action="store_true",
+    )
+
+    parser.add_argument(
+        "-W",
+        "--test-width",
+        help="test image width",
+        type=int,
+        default=1024,
+    )
+
+    parser.add_argument(
         "-w",
         "--white-background",
         help="display plots on a white background.",
@@ -148,7 +170,7 @@ def parseargs():
 
     args = parser.parse_args()
 
-    if args.save_tests is None:
+    if args.save_tests is None and not args.test_reshape:
         reqlst = []
         if args.method is None:
             reqlst.append("-m/--method")
@@ -232,14 +254,61 @@ def main():
 
     log.spongeout = args.sponge_out
     log.spongeerr = args.sponge_err
+    if args.quiet:
+        log.infoenabled = False
+        log.warnenabled = False
+        log.errenabled = False
+
+    if not args.white_background:
+        plt.style.use("dark_background")
+
+    if args.test_reshape:
+        entropyarrs = []
+        widtharrs = []
+        heightarrs = []
+
+        for i, (testname, testfunc) in enumerate(testimages.strtofunc.items()):
+            plt.figure(i + 1)
+            entropies = []
+            widths = []
+            heights = []
+
+            width = args.test_width
+            height = args.test_height
+            while width >= 2:
+                greyimg = testfunc(width, height)
+                colourimg = cv.cvtColor(greyimg, cv.COLOR_GRAY2RGB)
+                greyimg = greyimg.astype(np.int64)
+                colourimg = colourimg.astype(np.int64)
+
+                entropy = methods.strtofunc[args.method](args, colourimg, greyimg)[0]
+
+                entropies.append(entropy)
+                widths.append(width)
+                heights.append(height)
+
+                width = int(width / 2)
+                height = int(height * 2)
+
+            plt.plot(np.arange(len(widths)), entropies)
+            plt.title(f"{args.method}: {testname}")
+            plt.tight_layout()
+            plt.savefig(f"{args.method}_{testname}.pdf", bbox_inches="tight")
+
+            entropyarrs.append(entropies)
+            widtharrs.append(widths)
+            heightarrs.append(heights)
+
+        print(f"entarrs = {repr(entropyarrs)}")
+        print(f"warrs = {repr(widtharrs)}")
+        print(f"harrs = {repr(heightarrs)}")
+
+        sys.exit(0)
 
     if args.save_tests is not None:
         for s, f in testimages.strtofunc.items():
             cv.imwrite(f"{args.save_tests}/{s}.png", f())
         sys.exit(0)
-
-    if not args.white_background:
-        plt.style.use("dark_background")
 
     log.info(f"selected method: {args.method}")
 
@@ -249,7 +318,7 @@ def main():
         log.info(f"processing file: {fl}")
 
         if args.use_tests:
-            greyimg = testimages.strtofunc[fl](*((args.image_size,) * 2))
+            greyimg = testimages.strtofunc[fl](args.test_width, args.test_height)
             colourimg = cv.cvtColor(greyimg, cv.COLOR_GRAY2RGB)  # for plotting
         else:
             inputimg = cv.imread(fl)
