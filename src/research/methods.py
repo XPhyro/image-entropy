@@ -23,9 +23,6 @@ from copy import deepcopy as duplicate
 from operator import itemgetter
 
 from scipy import stats
-from scipy.ndimage.filters import gaussian_filter
-from skimage.filters.rank import entropy as skentropy
-from skimage.morphology import disk as skdisk
 import numpy as np
 
 import log
@@ -228,6 +225,8 @@ def delentropy2dv(args, colourimg, greyimg):
 
 
 def gradient2dc(args, colourimg, greyimg):
+    from scipy.ndimage.filters import gaussian_filter
+
     ### 1609.01117 page 10
 
     grad = np.gradient(greyimg)
@@ -397,6 +396,9 @@ def delentropyndv(args, colourimg, greyimg):
 
 
 def scikit2dr(args, colourimg, greyimg):
+    from skimage.filters.rank import entropy as skentropy
+    from skimage.morphology import disk as skdisk
+
     # From scikit docs:
     # The entropy is computed using base 2 logarithm i.e. the filter returns
     # the minimum number of bits needed to encode the local gray level distribution.
