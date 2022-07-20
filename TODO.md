@@ -13,6 +13,10 @@ None.
 
 # Development
 
+## Bugs
+- `*/development/*` seems to be broken. It enters a memory allocation loop
+  somewhere and dies after running out of memory.
+
 ## Machine Learning
 - See if we need a background category
 
