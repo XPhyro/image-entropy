@@ -5,11 +5,14 @@
 
 import hashlib
 
-import chacha
+from argparser import getargs
 from constants import TESTKEY, TESTIV
+import chacha
 
 
 def main():
+    args = getargs()
+
     buf = [0x59] * 64
     cipher = chacha.ChaCha(TESTKEY, TESTIV)
 
@@ -17,7 +20,7 @@ def main():
     sha = hashlib.sha256()
     assert sha.digest_size < len(buf)  # see [1]
 
-    for _ in range(10):
+    for _ in range(args.count):
         sha.update(bytes(cipher.next(buf)))
         rand = sha.hexdigest()
         print(rand)
