@@ -4,14 +4,6 @@
 - Set up Docker configs for each subproject.
 
 
-# CNN Test
-None.
-
-
-# Output
-None.
-
-
 # Development
 
 ## Bugs
