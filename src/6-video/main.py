@@ -1,7 +1,4 @@
 #!/usr/bin/env python3
-#
-# Assess and display entropy of images via different methods.
-# For usage, see `./main.py --help`.
 
 
 from operator import itemgetter
