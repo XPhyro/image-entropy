@@ -10,7 +10,8 @@
 #
 #
 # Copyright (c) 2013 Secworks Sweden AB
-# Author: Joachim Strömbergson
+# Copyright (c) 2022 Berke Kocaoğlu
+# Original Author: Joachim Strömbergson
 #
 # Redistribution and use in source and binary forms, with or
 # without modification, are permitted provided that the following
@@ -47,10 +48,38 @@ import sys
 from constants import TAU, SIGMA
 
 
+# ---------------------------------------------------------------
+# _b2w()
+#
+# Given a list of four bytes returns the little endian
+# 32 bit word representation of the bytes.
+# ---------------------------------------------------------------
+def _b2w(u32):
+    return (u32[0] + (u32[1] << 8) + (u32[2] << 16) + (u32[3] << 24)) & 0xFFFFFFFF
+
+
+# ---------------------------------------------------------------
+# _w2b()
+#
+# Given a 32-bit word returns a list of set of four bytes
+# that is the little endian byte representation of the word.
+# ---------------------------------------------------------------
+def _w2b(u32):
+    return [
+        (u32 & 0x000000FF),
+        ((u32 & 0x0000FF00) >> 8),
+        ((u32 & 0x00FF0000) >> 16),
+        ((u32 & 0xFF000000) >> 24),
+    ]
+
+
 # -------------------------------------------------------------------
 # ChaCha()
 # -------------------------------------------------------------------
 class ChaCha:
+    """
+    Initialise with set_key_iv(...) and use next(...) to rotate.
+    """
 
     # ---------------------------------------------------------------
     # __init__()
@@ -111,7 +140,7 @@ class ChaCha:
             self.state[10] = keyword6
             self.state[11] = keyword7
         else:
-            print("Key length of %d bits, is not supported." % (len(key) * 8))
+            print(f"Key length of {len(key) * 8} bits, is not supported.")
 
         # Common state init for both key lengths.
         self.block_counter = [0, 0]
@@ -146,7 +175,7 @@ class ChaCha:
         # (rounds / 2) double rounds.
         for i in range(int(self.rounds / 2)):
             if self.verbose > 1:
-                print("Doubleround 0x%02x:" % i)
+                print(f"Doubleround 0x{i:02x}:")
             self._doubleround()
             if self.verbose > 1:
                 print("")
@@ -235,7 +264,7 @@ class ChaCha:
         if self.verbose > 1:
             print("Indata to quarterround:")
             print("X state indices:", ai, bi, ci, di)
-            print("a = 0x%08x, b = 0x%08x, c = 0x%08x, d = 0x%08x" % (a, b, c, d))
+            print(f"a = 0x{a:08x}, b = 0x{b:08x}, c = 0x{c:08x}, d = 0x{d:08x}")
             print("")
 
         a0 = (a + b) & 0xFFFFFFFF
@@ -253,13 +282,15 @@ class ChaCha:
 
         if self.verbose > 2:
             print("Intermediate values:")
-            print("a0 = 0x%08x, a1 = 0x%08x" % (a0, a1))
+            print(f"a0 = 0x{a0:08x}, a1 = 0x{a1:08x}")
             print(
-                "b0 = 0x%08x, b1 = 0x%08x, b2 = 0x%08x, b3 = 0x%08x" % (b0, b1, b2, b3)
+                f"b0 = 0x{b0:08x}, b1 = 0x{b1:08x}, b2 = 0x{b2:08x}, b3 = 0x{b3:08x}"
+                % (b0, b1, b2, b3)
             )
-            print("c0 = 0x%08x, c1 = 0x%08x" % (c0, c1))
+            print(f"c0 = 0x{c0:08x}, c1 = 0x{c1:08x}")
             print(
-                "d0 = 0x%08x, d1 = 0x%08x, d2 = 0x%08x, d3 = 0x%08x" % (d0, d1, d2, d3)
+                f"d0 = 0x{d0:08x}, d1 = 0x{d1:08x}, d2 = 0x{d2:08x}, d3 = 0x{d3:08x}"
+                % (d0, d1, d2, d3)
             )
             print("")
 
@@ -271,8 +302,7 @@ class ChaCha:
         if self.verbose > 1:
             print("Outdata from quarterround:")
             print(
-                "a_prim = 0x%08x, b_prim = 0x%08x, c_prim = 0x%08x, d_prim = 0x%08x"
-                % (a_prim, b_prim, c_prim, d_prim)
+                f"a_prim = 0x{a_prim:08x}, b_prim = 0x{b_prim:08x}, c_prim = 0x{c_prim:08x}, d_prim = 0x{d_prim:08x}"
             )
             print("")
 
@@ -287,33 +317,8 @@ class ChaCha:
     # ---------------------------------------------------------------
     def _inc_counter(self):
         self.block_counter[0] += 1 & 0xFFFFFFFF
-        if not (self.block_counter[0] % 0xFFFFFFFF):
+        if not self.block_counter[0] % 0xFFFFFFFF:
             self.block_counter[1] += 1 & 0xFFFFFFFF
-
-    # ---------------------------------------------------------------
-    # _b2w()
-    #
-    # Given a list of four bytes returns the little endian
-    # 32 bit word representation of the bytes.
-    # ---------------------------------------------------------------
-    def _b2w(self, bytes):
-        return (
-            bytes[0] + (bytes[1] << 8) + (bytes[2] << 16) + (bytes[3] << 24)
-        ) & 0xFFFFFFFF
-
-    # ---------------------------------------------------------------
-    # _w2b()
-    #
-    # Given a 32-bit word returns a list of set of four bytes
-    # that is the little endian byte representation of the word.
-    # ---------------------------------------------------------------
-    def _w2b(self, word):
-        return [
-            (word & 0x000000FF),
-            ((word & 0x0000FF00) >> 8),
-            ((word & 0x00FF0000) >> 16),
-            ((word & 0xFF000000) >> 24),
-        ]
 
     # ---------------------------------------------------------------
     # _print_state()
@@ -322,20 +327,16 @@ class ChaCha:
     # ---------------------------------------------------------------
     def _print_state(self):
         print(
-            " 0: 0x%08x,  1: 0x%08x,  2: 0x%08x,  3: 0x%08x"
-            % (self.state[0], self.state[1], self.state[2], self.state[3])
+            f" 0: 0x{self.state[0]:08x},  1: 0x{self.state[1]:08x},  2: 0x{self.state[2]:08x},  3: 0x{self.state[3]:08x}"
         )
         print(
-            " 4: 0x%08x,  5: 0x%08x,  6: 0x%08x,  7: 0x%08x"
-            % (self.state[4], self.state[5], self.state[6], self.state[7])
+            f" 4: 0x{self.state[0]:08x},  5: 0x{self.state[1]:08x},  6: 0x{self.state[2]:08x},  7: 0x{self.state[3]:08x}"
         )
         print(
-            " 8: 0x%08x,  9: 0x%08x, 10: 0x%08x, 11: 0x%08x"
-            % (self.state[8], self.state[9], self.state[10], self.state[11])
+            f" 8: 0x{self.state[0]:08x},  9: 0x{self.state[1]:08x}, 10: 0x{self.state[2]:08x}, 11: 0x{self.state[3]:08x}"
         )
         print(
-            "12: 0x%08x, 13: 0x%08x, 14: 0x%08x, 15: 0x%08x"
-            % (self.state[12], self.state[13], self.state[14], self.state[15])
+            f"12: 0x{self.state[0]:08x}, 13: 0x{self.state[1]:08x}, 14: 0x{self.state[2]:08x}, 15: 0x{self.state[3]:08x}"
         )
         print("")
 
@@ -346,20 +347,16 @@ class ChaCha:
     # ---------------------------------------------------------------
     def _print_x(self):
         print(
-            " 0: 0x%08x,  1: 0x%08x,  2: 0x%08x,  3: 0x%08x"
-            % (self.x[0], self.x[1], self.x[2], self.x[3])
+            f" 0: 0x{self.x[0]:08x},  1: 0x{self.x[1]:08x},  2: 0x{self.x[2]:08x},  3: 0x{self.x[3]:08x}"
         )
         print(
-            " 4: 0x%08x,  5: 0x%08x,  6: 0x%08x,  7: 0x%08x"
-            % (self.x[4], self.x[5], self.x[6], self.x[7])
+            f" 4: 0x{self.x[5]:08x},  5: 0x{self.x[5]:08x},  6: 0x{self.x[6]:08x},  7: 0x{self.x[7]:08x}"
         )
         print(
-            " 8: 0x%08x,  9: 0x%08x, 10: 0x%08x, 11: 0x%08x"
-            % (self.x[8], self.x[9], self.x[10], self.x[11])
+            f" 8: 0x{self.x[8]:08x},  9: 0x{self.x[9]:08x}, 10: 0x{self.x[10]:08x}, 11: 0x{self.x[11]:08x}"
         )
         print(
-            "12: 0x%08x, 13: 0x%08x, 14: 0x%08x, 15: 0x%08x"
-            % (self.x[12], self.x[13], self.x[14], self.x[15])
+            f"12: 0x{self.x[12]:08x}, 13: 0x{self.x[13]:08x}, 14: 0x{self.x[14]:08x}, 15: 0x{self.x[15]:08x}"
         )
         print("")
 
@@ -373,31 +370,21 @@ class ChaCha:
 def print_block(block):
     for i in range(0, len(block), 8):
         print(
-            "0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x"
-            % (
-                block[i],
-                block[i + 1],
-                block[i + 2],
-                block[i + 3],
-                block[i + 4],
-                block[i + 5],
-                block[i + 6],
-                block[i + 7],
-            )
+            f"0x{block[i + 0]:02x} 0x{block[i + 1]:02x} 0x{block[i + 2]:02x} 0x{block[i + 3]:02x} 0x{block[i + 4]:02x} 0x{block[i + 5]:02x} 0x{block[i + 6]:02x} 0x{block[i + 7]:02x}"
         )
 
 
 # -------------------------------------------------------------------
 # check_block()
 #
-# Compare the result block with the expected block and print
+# Compare the result block with the expected block and print()
 # if the result for the given test case was correct or not.
 # -------------------------------------------------------------------
 def check_block(result, expected, test_case):
     if result == expected:
-        print("SUCCESS: %s was correct." % test_case)
+        print(f"SUCCESS: {test_case} was correct.")
     else:
-        print("ERROR: %s was not correct." % test_case)
+        print(f"ERROR: {test_case} was not correct.")
         print("Expected:")
         print_block(expected)
         print("")
@@ -414,7 +401,7 @@ def check_block(result, expected, test_case):
 def main():
     print("Testing the ChaCha Python model.")
     print("--------------------------------")
-    print
+    print()
 
     # Testing with TC1-128-8.
     # All zero inputs. IV all zero. 128 bit key, 8 rounds.
@@ -491,7 +478,7 @@ def main():
     cipher1 = ChaCha(key1, iv1, verbose=0)
     result1 = cipher1.next(block1)
     check_block(result1, expected1, "TC1-128-8")
-    print
+    print()
 
     # Testing with TC1-128-12.
     # All zero inputs. IV all zero. 128 bit key, 12 rounds.
@@ -568,7 +555,7 @@ def main():
     cipher1 = ChaCha(key1, iv1, rounds=12, verbose=0)
     result1 = cipher1.next(block1)
     check_block(result1, expected1, "TC1-128-12")
-    print
+    print()
 
     # Testing with TC1-128-20.
     # All zero inputs. IV all zero. 128 bit key, 20 rounds.
@@ -645,7 +632,7 @@ def main():
     cipher1 = ChaCha(key1, iv1, rounds=20, verbose=0)
     result1 = cipher1.next(block1)
     check_block(result1, expected1, "TC1-128-20")
-    print
+    print()
 
     # Testing with TC1-256-8.
     # All zero inputs. IV all zero. 256 bit key, 8 rounds.
@@ -722,7 +709,7 @@ def main():
     cipher1 = ChaCha(key1, iv1, verbose=0)
     result1 = cipher1.next(block1)
     check_block(result1, expected1, "TC1-256-8")
-    print
+    print()
 
     # Testing with TC1-256-12.
     # All zero inputs. IV all zero. 256 bit key, 12 rounds.
@@ -799,7 +786,7 @@ def main():
     cipher1 = ChaCha(key1, iv1, rounds=12, verbose=0)
     result1 = cipher1.next(block1)
     check_block(result1, expected1, "TC1-256-12")
-    print
+    print()
 
     # Testing with TC1-256-20.
     # All zero inputs. IV all zero. 256 bit key, 20 rounds.
@@ -876,7 +863,7 @@ def main():
     cipher1 = ChaCha(key1, iv1, rounds=20, verbose=0)
     result1 = cipher1.next(block1)
     check_block(result1, expected1, "TC1-256-20")
-    print
+    print()
 
     # Testing with TC2-128-8.
     # Single bit set in key. IV all zero. 128 bit key.
@@ -970,7 +957,7 @@ def main():
     cipher2 = ChaCha(key2, iv2, verbose=0)
     result2 = cipher2.next(block2)
     check_block(result2, expected2, "TC2-128-8")
-    print
+    print()
 
     # Testing with TC2-256-8.
     # Single bit set in key. IV all zero. 256 bit key.
@@ -1080,7 +1067,7 @@ def main():
     cipher2 = ChaCha(key2, iv2, verbose=0)
     result2 = cipher2.next(block2)
     check_block(result2, expected2, "TC2-256-8")
-    print
+    print()
 
     # Testing with TC3-128-8.
     # All zero key. Single bit in IV set. 128 bit key.
@@ -1175,7 +1162,7 @@ def main():
     cipher3 = ChaCha(key3, iv3, verbose=0)
     result3 = cipher3.next(block3)
     check_block(result3, expected3, "TC3-128-8")
-    print
+    print()
 
     # Testing with TC4-128-8.
     # All bits in key IV are set. 128 bit key, 8 rounds.
@@ -1269,7 +1256,7 @@ def main():
     cipher4 = ChaCha(key4, iv4, verbose=0)
     result4 = cipher4.next(block4)
     check_block(result4, expected4, "TC4-128-8")
-    print
+    print()
 
     # Testing with TC5-128-8
     print("TC5-128-8: Even bits set. 128 bit key, 8 rounds.")
@@ -1345,7 +1332,7 @@ def main():
     cipher5 = ChaCha(key5, iv5, verbose=0)
     result5 = cipher5.next(block5)
     check_block(result5, expected5, "TC5-128-8")
-    print
+    print()
 
     # Testing with TC6-128-8
     print("TC6-128-8: Odd bits set. 128 bit key, 8 rounds.")
@@ -1421,7 +1408,7 @@ def main():
     cipher6 = ChaCha(key6, iv6, verbose=0)
     result6 = cipher6.next(block6)
     check_block(result6, expected6, "TC6-128-8")
-    print
+    print()
 
     # Testing with TC7-128-8
     print(
@@ -1516,7 +1503,7 @@ def main():
     cipher7 = ChaCha(key7, iv7, verbose=2)
     result7 = cipher7.next(block7)
     check_block(result7, expected7, "TC7-128-8")
-    print
+    print()
 
     # Testing with TC8-128-8
     print("TC8-128-8: Random inputs. 128 bit key, 8 rounds.")
@@ -1609,7 +1596,7 @@ def main():
     cipher8 = ChaCha(key8, iv8, verbose=0)
     result8 = cipher8.next(block8)
     check_block(result8, expected8, "TC8-128-8")
-    print
+    print()
 
 
 # -------------------------------------------------------------------
