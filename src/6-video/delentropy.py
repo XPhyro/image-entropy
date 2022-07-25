@@ -5,12 +5,12 @@ import numpy as np
 import log
 
 
-def original(args, colourimg, greyimg):
+def original(args, video):
     ### 1609.01117 page 10
 
     # $\nabla f(n) \approx f(n) - f(n - 1)$
-    fx = greyimg[:, 2:] - greyimg[:, :-2]
-    fy = greyimg[2:, :] - greyimg[:-2, :]
+    fx = video[:, 2:] - video[:, :-2]
+    fy = video[2:, :] - video[:-2, :]
     # fix shape
     fx = fx[1:-1, :]
     fy = fy[:, 1:-1]
@@ -33,26 +33,13 @@ def original(args, colourimg, greyimg):
     entropy = np.sum(deldensity)
     entropy /= 2  # 4.3 Papoulis generalized sampling halves the delentropy
 
-    log.info(
-        f"entropy: {entropy}",
-        f"entropy ratio: {entropy / 8.0}",
-    )
-
-    return (
-        entropy,
-        colourimg,
-        greyimg,
-        [
-            # (gradimg, "Gradient", []),
-            (deldensity, "Deldensity", ["hasbar"]),
-        ],
-    )
+    return (entropy, (grad, hist, deldensity))
 
 
-def variation(args, colourimg, greyimg):
+def variation(args, video):
     ### 1609.01117 page 10
 
-    grad = [f.astype(int).flatten() for f in np.gradient(greyimg)]
+    grad = [f.astype(int).flatten() for f in np.gradient(video)]
 
     # ensure $-255 \leq J \leq 255$
     jrng = np.max(np.abs(grad))
@@ -72,28 +59,16 @@ def variation(args, colourimg, greyimg):
     entropy = np.sum(deldensity)
     entropy /= 2  # 4.3 Papoulis generalized sampling halves the delentropy
 
-    log.info(
-        f"entropy: {entropy}",
-        f"entropy ratio: {entropy / 8.0}",
-    )
-
-    return (
-        entropy,
-        colourimg,
-        greyimg,
-        [
-            (deldensity, "Deldensity", ["hasbar"]),
-        ],
-    )
+    return (entropy, (grad, hist, deldensity))
 
 
 # TODO: generalise to n dimensions
-def convolved(args, colourimg, greyimg):
+def convolved(args, video):
     kernshape = (args.kernel_size,) * 2
     kerns = np.lib.stride_tricks.as_strided(
-        greyimg,
-        tuple(np.subtract(greyimg.shape, kernshape) + 1) + kernshape,
-        greyimg.strides * 2,
+        video,
+        tuple(np.subtract(video.shape, kernshape) + 1) + kernshape,
+        video.strides * 2,
     )
     kernent = []
 
@@ -122,11 +97,4 @@ def convolved(args, colourimg, greyimg):
 
     kernent = np.reshape(kernent, itemgetter(0, 1)(kerns.shape))
 
-    return (
-        np.mean(kernent),
-        colourimg,
-        greyimg,
-        [
-            (kernent, "Kernelised Delentropy", ["hasbar", "forcecolour"]),
-        ],
-    )
+    return (np.mean(kernent), (None, None, None))
