@@ -2,6 +2,7 @@
 - Add a `CITATION.cff` file.
 - Add sub-readmes.
 - Set up Docker configs for each subproject.
+- Add unit tests via GitHub Workflow & Codeberg CI.
 
 
 # Development
