@@ -2,8 +2,6 @@ from operator import itemgetter
 
 import numpy as np
 
-import log
-
 
 def original(args, video):
     ### 1609.01117 page 10
@@ -33,7 +31,7 @@ def original(args, video):
     entropy = np.sum(deldensity)
     entropy /= 2  # 4.3 Papoulis generalized sampling halves the delentropy
 
-    return (entropy, (grad, hist, deldensity))
+    return (entropy, (fx + fy, hist, deldensity))
 
 
 def variation(args, video):

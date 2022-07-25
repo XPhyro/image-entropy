@@ -251,6 +251,7 @@ def plotall(entropy, colourimg, greyimg, plots):
 
 def main():
     parseargs()
+    methods.init(args)
 
     log.spongeout = args.sponge_out
     log.spongeerr = args.sponge_err

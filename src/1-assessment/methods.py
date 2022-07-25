@@ -28,6 +28,15 @@ import numpy as np
 import log
 
 
+def init(args):
+    match args.method:
+        case "2d-gradient-cnn":
+            from scipy.ndimage.filters import gaussian_filter
+        case "2d-regional-scikit":
+            from skimage.filters.rank import entropy as skentropy
+            from skimage.morphology import disk as skdisk
+
+
 def kapur1dv(args, colourimg, greyimg):
     hist = np.histogram(greyimg, bins=255, range=(0, 256))[0]
     cdf = hist.astype(float).cumsum()  # cumulative distribution function
@@ -225,8 +234,6 @@ def delentropy2dv(args, colourimg, greyimg):
 
 
 def gradient2dc(args, colourimg, greyimg):
-    from scipy.ndimage.filters import gaussian_filter
-
     ### 1609.01117 page 10
 
     grad = np.gradient(greyimg)
@@ -396,9 +403,6 @@ def delentropyndv(args, colourimg, greyimg):
 
 
 def scikit2dr(args, colourimg, greyimg):
-    from skimage.filters.rank import entropy as skentropy
-    from skimage.morphology import disk as skdisk
-
     # From scikit docs:
     # The entropy is computed using base 2 logarithm i.e. the filter returns
     # the minimum number of bits needed to encode the local gray level distribution.

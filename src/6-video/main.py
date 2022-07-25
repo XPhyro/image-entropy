@@ -102,14 +102,14 @@ def parseargs():
 def argtypeuint(val):
     ival = int(val)
     if ival < 0:
-        raise argparse.ArgumentTypeError(f"argument must be a non-negative integer.")
+        raise argparse.ArgumentTypeError("argument must be a non-negative integer.")
     return ival
 
 
 def argtypepint(val):
     ival = int(val)
     if ival <= 0:
-        raise argparse.ArgumentTypeError(f"argument must be a positive integer.")
+        raise argparse.ArgumentTypeError("argument must be a positive integer.")
     return ival
 
 
@@ -157,37 +157,36 @@ def processvideo(filename):
             f"max frame count: {args.max_frame_count}",
         )
 
-        pipe = sp.Popen(argv, stdout=sp.PIPE, bufsize=bufsize)
+        with sp.Popen(argv, stdout=sp.PIPE, bufsize=bufsize) as pipe:
+            # TODO: dynamically adjust size of stack depending on memory usage and computation time
+            stack = []
+            frameidx = 0
+            while (
+                args.max_frame_count == 0 or frameidx < args.max_frame_count
+            ) and pipe.stdout.readable():
+                rawframe = pipe.stdout.read(framesize)
+                frame = np.frombuffer(rawframe, dtype=np.uint8)
 
-        # TODO: dynamically adjust size of stack depending on memory usage and computation time
-        stack = []
-        frameidx = 0
-        while (
-            args.max_frame_count == 0 or frameidx < args.max_frame_count
-        ) and pipe.stdout.readable():
-            rawframe = pipe.stdout.read(framesize)
-            frame = np.frombuffer(rawframe, dtype=np.uint8)
+                stacksize = len(stack)
+                if args.max_stack_size != 0 and stacksize == args.max_stack_size:
+                    stack.pop(0)
+                else:
+                    stacksize += 1
+                stack.append(frame)
+                frameidx += 1
 
-            stacksize = len(stack)
-            if args.max_stack_size != 0 and stacksize == args.max_stack_size:
-                stack.pop(0)
-            else:
-                stacksize += 1
-            stack.append(frame)
-            frameidx += 1
+                if stacksize < 2 or (
+                    args.strict_stack and stacksize != args.max_stack_size
+                ):
+                    continue
 
-            if stacksize < 2 or (
-                args.strict_stack and stacksize != args.max_stack_size
-            ):
-                continue
-
-            # TODO: implement joint entropy. make joint entropy default (but
-            #       optional) via argparse. convert to greyscale until
-            #       implemented joint entropy is implemented.
-            entropy = delentropy.variation(args, stack)[0]
-            log.info(
-                f"entropy of frames {frameidx - stacksize + 1}-{frameidx + 1}: {entropy}"
-            )
+                # TODO: implement joint entropy. make joint entropy default (but
+                #       optional) via argparse. convert to greyscale until
+                #       implemented joint entropy is implemented.
+                entropy = delentropy.variation(args, stack)[0]
+                log.info(
+                    f"entropy of frames {frameidx - stacksize + 1}-{frameidx + 1}: {entropy}"
+                )
 
 
 def main():
