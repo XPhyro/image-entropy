@@ -210,7 +210,7 @@ def processvideo(filename):
     pipeidx = 0
     stackidx = 0
     stackskip = 0
-    rgbframe = [None, None, None]
+    rgbframe = np.zeros(shape)
     rgbturn = 0
     while args.max_frame_count == 0 or frameidx < args.max_frame_count:
         pipe = None
@@ -257,7 +257,11 @@ def processvideo(filename):
         frame = frame.reshape(shape)
 
         if args.cycle_rgb:
-            pass
+            rgbframe[:, :, rgbturn] = frame[:, :, rgbturn]
+            rgbturn = (rgbturn + 1) % 3
+            if rgbturn != 2:
+                continue
+            frame = rgbframe
 
         stacksize = len(stack)
         while args.max_stack_size != 0:
