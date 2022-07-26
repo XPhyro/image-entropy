@@ -25,6 +25,14 @@ def parseargs():
         type=argtypepint,
         default=4,
     )
+
+    parser.add_argument(
+        "-C",
+        "--cycle-rgb",
+        help="cycle usage of r, g and b channels",
+        action="store_true",
+    )
+
     parser.add_argument(
         "-c",
         "--stack-is-stream",
@@ -160,7 +168,7 @@ def processvideo(filename):
 
         log.info(f"processing stream {streamhidx}/{nstreams}")
 
-        log.info(f"total frame count: {stream['nb_frames']}")
+        log.info(f"total frame count: {stream.get('nb_frames')}")
 
         shape = itemgetter("height", "width")(stream)
         if not args.greyscale:
@@ -202,6 +210,8 @@ def processvideo(filename):
     pipeidx = 0
     stackidx = 0
     stackskip = 0
+    rgbframe = [None, None, None]
+    rgbturn = 0
     while args.max_frame_count == 0 or frameidx < args.max_frame_count:
         pipe = None
         while pipe is None:
@@ -242,7 +252,12 @@ def processvideo(filename):
             frameskip = (frameskip + 1) % args.skip_period
             if willskip:
                 continue
+
         frame = np.frombuffer(rawframe, dtype=np.uint8)
+        frame = frame.reshape(shape)
+
+        if args.cycle_rgb:
+            pass
 
         stacksize = len(stack)
         while args.max_stack_size != 0:
@@ -259,9 +274,8 @@ def processvideo(filename):
             continue
 
         # TODO: implement joint entropy. make joint entropy default (but
-        #       optional) via argparse. convert to greyscale until
-        #       implemented joint entropy is implemented.
-        entropy = delentropy.variation(args, stack)[0]
+        #       optional) via argparse.
+        entropy = delentropy.variationlight(args, stack)[0]
         log.info(
             f"entropy of frames {frameidx - stacksize + 1}-{frameidx + 1}: {entropy}"
         )
