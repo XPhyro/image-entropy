@@ -4,6 +4,7 @@
 from operator import itemgetter
 import argparse
 import subprocess as sp
+import sys
 
 import ffmpeg as ffm
 import numpy as np
@@ -36,6 +37,14 @@ def parseargs():
         "-n",
         "--max-frame-count",
         help="limit number of frames processed per stream per file. 0 is unlimited.",
+        type=argtypeuint,
+        default=0,
+    )
+
+    parser.add_argument(
+        "-p",
+        "--skip-period",
+        help="skip every nth frame. 0 is no skipping.",
         type=argtypeuint,
         default=0,
     )
@@ -94,6 +103,9 @@ def parseargs():
             "joint entropy is not yet implemented, colour frame assessment will be inaccurate. "
             + "consider using --greyscale."
         )
+    if args.max_stack_size < 2:
+        log.err("maximum stack size cannot be less than 2")
+        sys.exit(1)
 
 
 def argtypeuint(val):
@@ -119,11 +131,14 @@ def processvideo(filename):
         return
 
     log.info(f"found {nstreams} {'stream' if nstreams == 1 else 'streams'}")
-    for stream in streams:
+    pipes = []
+    for i, stream in enumerate(streams):
         streamidx = stream["index"]
         streamhidx = streamidx + 1
 
         log.info(f"processing stream {streamhidx}/{nstreams}")
+
+        log.info(f"total frame count: {stream['nb_frames']}")
 
         shape = itemgetter("height", "width")(stream)
         if not args.greyscale:
@@ -136,7 +151,7 @@ def processvideo(filename):
             ffm.input(filename)
             .output(
                 "pipe:",
-                map=f"0:v:{streamidx}",
+                map=f"0:v:{i}",
                 format="rawvideo",
                 pix_fmt="gray" if args.greyscale else "rgb24",
                 loglevel="warning",
@@ -154,36 +169,51 @@ def processvideo(filename):
             f"max frame count: {args.max_frame_count}",
         )
 
-        with sp.Popen(argv, stdout=sp.PIPE, bufsize=bufsize) as pipe:
-            # TODO: dynamically adjust size of stack depending on memory usage and computation time
-            stack = []
-            frameidx = 0
-            while (
-                args.max_frame_count == 0 or frameidx < args.max_frame_count
-            ) and pipe.stdout.readable():
-                rawframe = pipe.stdout.read(framesize)
-                frame = np.frombuffer(rawframe, dtype=np.uint8)
+        pipes.append(sp.Popen(argv, stdout=sp.PIPE, bufsize=bufsize))
+        log.info("successfully opened pipe")
 
-                stacksize = len(stack)
-                if args.max_stack_size != 0 and stacksize == args.max_stack_size:
-                    stack.pop(0)
-                else:
-                    stacksize += 1
-                stack.append(frame)
+    # TODO: dynamically adjust size of stack depending on memory usage and computation time
+    stack = []
+    frameidx = 0
+    frameskip = 0
+    willskip = False
+    pipeidx = 0
+    while args.max_frame_count == 0 or frameidx < args.max_frame_count:
+        pipe = pipes[pipeidx]
+        if not pipe.stdout.readable():
+            break
+        pipeidx = (pipeidx + 1) % nstreams
+
+        rawframe = pipe.stdout.read(framesize)
+        if args.skip_period != 0:
+            if frameskip != 0:
                 frameidx += 1
+                willskip = True
+            else:
+                willskip = False
+            frameskip = (frameskip + 1) % args.skip_period
+            if willskip:
+                continue
+        frame = np.frombuffer(rawframe, dtype=np.uint8)
 
-                if stacksize < 2 or (
-                    args.strict_stack and stacksize != args.max_stack_size
-                ):
-                    continue
+        stacksize = len(stack)
+        if args.max_stack_size != 0 and stacksize == args.max_stack_size:
+            stack.pop(0)
+        else:
+            stacksize += 1
+        stack.append(frame)
+        frameidx += 1
 
-                # TODO: implement joint entropy. make joint entropy default (but
-                #       optional) via argparse. convert to greyscale until
-                #       implemented joint entropy is implemented.
-                entropy = delentropy.variation(args, stack)[0]
-                log.info(
-                    f"entropy of frames {frameidx - stacksize + 1}-{frameidx + 1}: {entropy}"
-                )
+        if stacksize < 2 or (args.strict_stack and stacksize != args.max_stack_size):
+            continue
+
+        # TODO: implement joint entropy. make joint entropy default (but
+        #       optional) via argparse. convert to greyscale until
+        #       implemented joint entropy is implemented.
+        entropy = delentropy.variation(args, stack)[0]
+        log.info(
+            f"entropy of frames {frameidx - stacksize + 1}-{frameidx + 1}: {entropy}"
+        )
 
 
 def main():
