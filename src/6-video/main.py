@@ -34,6 +34,22 @@ def parseargs():
     )
 
     parser.add_argument(
+        "-M",
+        "--stack-period",
+        help="number of frames to wait until sliding the stack. 0 is disabled",
+        type=argtypeuint,
+        default=0,
+    )
+
+    parser.add_argument(
+        "-m",
+        "--stack-modulus",
+        help="number of frames to slide to construct the stack. 0 is disabled",
+        type=argtypeuint,
+        default=0,
+    )
+
+    parser.add_argument(
         "-n",
         "--max-frame-count",
         help="limit number of frames processed per stream per file. 0 is unlimited.",
@@ -178,7 +194,18 @@ def processvideo(filename):
     frameskip = 0
     willskip = False
     pipeidx = 0
+    stackidx = 0
+    stackskip = 0
     while args.max_frame_count == 0 or frameidx < args.max_frame_count:
+        stacksize = len(stack)
+        if stacksize == args.stack_modulus and stackskip != 0:
+            stackskip -= 1
+            continue
+        stackidx += 1
+        if args.stack_period != 0:
+            if stackidx % args.stack_period == 0:
+                stack = []
+                stacksize = 0
         pipe = pipes[pipeidx]
         if not pipe.stdout.readable():
             break
