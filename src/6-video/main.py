@@ -25,6 +25,12 @@ def parseargs():
         type=argtypepint,
         default=4,
     )
+    parser.add_argument(
+        "-c",
+        "--stack-is-stream",
+        help="sync stack period, stack modulus and maximum stack size to stream count. overrides -M, -m and -s.",
+        action="store_true",
+    )
 
     parser.add_argument(
         "-g",
@@ -44,7 +50,7 @@ def parseargs():
     parser.add_argument(
         "-m",
         "--stack-modulus",
-        help="number of frames to slide to construct the stack. 0 is disabled",
+        help="number of frames to slide to construct a new stack. 0 is disabled. if non-zero, frame indices shown will be wrong.",
         type=argtypeuint,
         default=0,
     )
@@ -60,7 +66,7 @@ def parseargs():
     parser.add_argument(
         "-p",
         "--skip-period",
-        help="skip every nth frame. 0 is no skipping.",
+        help="skip every nth frame. 0 is no skipping. if non-zero, frame indices shown will be wrong.",
         type=argtypeuint,
         default=0,
     )
@@ -197,6 +203,25 @@ def processvideo(filename):
     stackidx = 0
     stackskip = 0
     while args.max_frame_count == 0 or frameidx < args.max_frame_count:
+        pipe = None
+        while pipe is None:
+            pipe = pipes[pipeidx]
+            if not pipe.stdout.readable():
+                pipes.pop(pipeidx)
+                nstreams -= 1
+                pipeidx = pipeidx % nstreams
+            else:
+                pipeidx = (pipeidx + 1) % nstreams
+            if nstreams == 0:
+                break
+        if pipe is None:
+            break
+
+        if args.stack_is_stream:
+            args.stack_modulus = nstreams
+            args.stack_period = nstreams
+            args.max_stack_size = nstreams
+
         stacksize = len(stack)
         if stacksize == args.stack_modulus and stackskip != 0:
             stackskip -= 1
@@ -206,10 +231,6 @@ def processvideo(filename):
             if stackidx % args.stack_period == 0:
                 stack = []
                 stacksize = 0
-        pipe = pipes[pipeidx]
-        if not pipe.stdout.readable():
-            break
-        pipeidx = (pipeidx + 1) % nstreams
 
         rawframe = pipe.stdout.read(framesize)
         if args.skip_period != 0:
@@ -224,8 +245,11 @@ def processvideo(filename):
         frame = np.frombuffer(rawframe, dtype=np.uint8)
 
         stacksize = len(stack)
-        if args.max_stack_size != 0 and stacksize == args.max_stack_size:
-            stack.pop(0)
+        while args.max_stack_size != 0:
+            if stacksize >= args.max_stack_size:
+                stack.pop(0)
+            else:
+                break
         else:
             stacksize += 1
         stack.append(frame)
