@@ -239,7 +239,7 @@ def processvideo(filename):
         stackidx += 1
         if args.stack_period != 0:
             if stackidx % args.stack_period == 0:
-                stack = []
+                stack.clear()
                 stacksize = 0
 
         rawframe = pipe.stdout.read(framesize)
