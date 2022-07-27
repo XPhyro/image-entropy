@@ -63,7 +63,7 @@ def variationlight(args, stack):
 def variation(args, stack):
     ### 1609.01117 page 10
 
-    grad = np.array([f.astype(int).flatten() for f in np.gradient(stack)]).flatten()
+    grad = np.array([f.astype(int).flatten() for f in np.gradient(stack)])
 
     # ensure $-255 \leq J \leq 255$
     jrng = np.max(np.abs(grad))
