@@ -264,13 +264,11 @@ def processvideo(filename):
             frame = rgbframe
 
         stacksize = len(stack)
-        while args.max_stack_size != 0:
-            if stacksize >= args.max_stack_size:
+        if args.max_stack_size != 0:
+            while stacksize >= args.max_stack_size:
                 stack.pop(0)
-            else:
-                break
-        else:
-            stacksize += 1
+                stacksize -= 1
+        stacksize += 1
         stack.append(frame)
         frameidx += 1
 
