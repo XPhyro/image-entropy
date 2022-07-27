@@ -27,7 +27,9 @@ def original(args, stack):
     ### 1609.01117 page 22
 
     deldensity = hist / hist.sum()
-    deldensity = deldensity * -np.ma.log2(deldensity)
+    deldensity = deldensity * -(np.ma.log if args.abstract_entropy else np.ma.log2)(
+        deldensity
+    )
     entropy = np.sum(deldensity)
     entropy /= 2  # 4.3 Papoulis generalized sampling halves the delentropy
 

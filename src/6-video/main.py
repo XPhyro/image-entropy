@@ -19,6 +19,13 @@ def parseargs():
     parser = argparse.ArgumentParser(description="Compute and display image entropy.")
 
     parser.add_argument(
+        "-a",
+        "--abstract-entropy",
+        help="use abstract entropy instead of strict information entropy",
+        action="store_true",
+    )
+
+    parser.add_argument(
         "-B",
         "--treat-binary",
         help="treat given files as binary instead of video. if given, -H and -W are required.",
