@@ -35,7 +35,7 @@ def parseargs():
     parser.add_argument(
         "-b",
         "--buffer-size",
-        help="how many frames to buffer",
+        help="count of frames to buffer. default is 4.",
         type=argtypepint,
         default=4,
     )
@@ -71,7 +71,7 @@ def parseargs():
     parser.add_argument(
         "-H",
         "--binary-height",
-        help="height of the video if -B is given",
+        help="height of the video if -B is given. default is 1200.",
         type=argtypepint,
         default=1200,
     )
@@ -86,7 +86,7 @@ def parseargs():
     parser.add_argument(
         "-M",
         "--stack-period",
-        help="number of frames to wait until sliding the stack. 0 is disabled",
+        help="number of frames to wait until sliding the stack. 0 is disabled. default is 0.",
         type=argtypeuint,
         default=0,
     )
@@ -94,7 +94,7 @@ def parseargs():
     parser.add_argument(
         "-m",
         "--stack-modulus",
-        help="number of frames to slide to construct a new stack. 0 is disabled. if non-zero, frame indices shown will be wrong.",
+        help="number of frames to slide to construct a new stack. 0 is disabled. if non-zero, frame indices shown will be wrong. default is 0.",
         type=argtypeuint,
         default=0,
     )
@@ -102,7 +102,7 @@ def parseargs():
     parser.add_argument(
         "-n",
         "--max-frame-count",
-        help="limit number of frames processed per stream per file. 0 is unlimited.",
+        help="limit number of frames processed per stream per file. 0 is unlimited. default is 0.",
         type=argtypeuint,
         default=0,
     )
@@ -110,7 +110,7 @@ def parseargs():
     parser.add_argument(
         "-p",
         "--skip-period",
-        help="skip every nth frame. 0 is no skipping. if non-zero, frame indices shown will be wrong.",
+        help="skip every nth frame. 0 is no skipping. if non-zero, frame indices shown will be wrong. default is 0.",
         type=argtypeuint,
         default=0,
     )
@@ -125,7 +125,7 @@ def parseargs():
     parser.add_argument(
         "-s",
         "--max-stack-size",
-        help="maximum size of the frame stack in count of frames. 0 is unlimited. effective maximum size may be smaller than the given maximum size.",
+        help="maximum size of the frame stack in count of frames. 0 is unlimited. effective maximum size may be smaller than the given maximum size. default is 8.",
         type=argtypeuint,
         default=8,
     )
@@ -145,7 +145,7 @@ def parseargs():
     parser.add_argument(
         "-W",
         "--binary-width",
-        help="width of the video if -B is given",
+        help="width of the video if -B is given. default is 1920.",
         type=argtypepint,
         default=1920,
     )
