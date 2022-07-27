@@ -93,7 +93,7 @@ segmentation() {
 subcmd="$1"
 shift
 case "$subcmd" in
-    s|seg|segmentation) segmentation "$@";;
+    2|s|seg|segmentation|2-segmentation) segmentation "$@";;
     *) logerrq "invalid or not-supported subcommand";;
 esac
 
