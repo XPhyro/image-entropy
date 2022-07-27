@@ -16,16 +16,16 @@ segmentation() {
             a) optmodel="ade20k";;
             h)
                 printf "%s" \
-    "usage: $0 [-a] [-h] [-m] [-P] [-p] [-s] [ARG [ARG ...]] -- [ARG [ARG ...]]
+"usage: $0 [-a] [-h] [-m] [-P] [-p] [-s] [ARG [ARG ...]] -- [ARG [ARG ...]]
 
-    Quickly run the Python project using pre-set arguments.
+Quickly run the Python project using pre-set arguments.
 
-       -a        enable Ade20k semantic segmentation
-       -h        show this help message and exit
-       -P PATH   path to Python executable
-       -p        enable Pascalvoc semantic segmentation
-       -s        do not filter output
-    "
+   -a        enable Ade20k semantic segmentation
+   -h        show this help message and exit
+   -P PATH   path to Python executable
+   -p        enable Pascalvoc semantic segmentation
+   -s        do not filter output
+"
                 exit 0
                 ;;
             P) pythonpath="$OPT";;
