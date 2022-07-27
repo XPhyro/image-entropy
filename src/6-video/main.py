@@ -55,6 +55,13 @@ def parseargs():
     )
 
     parser.add_argument(
+        "-G",
+        "--gpu",
+        help="use GPU",
+        action="store_true",
+    )
+
+    parser.add_argument(
         "-g",
         "--greyscale",
         help="convert frames to greyscale",
@@ -367,6 +374,8 @@ def main():
         log.infoenabled = False
         log.warnenabled = False
         log.errenabled = False
+
+    delentropy.init(args)
 
     func = delentropy.variationlight if args.light_variation else delentropy.variation
 

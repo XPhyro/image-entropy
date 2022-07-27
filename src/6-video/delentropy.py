@@ -1,6 +1,28 @@
 from operator import itemgetter
 
-import numpy as np
+
+def init(args):
+    global np
+    if args.gpu:
+        import cupy as np
+    else:
+        import numpy as np
+
+
+def log(args, arr):
+    if args.gpu:
+        arr[arr <= 0] = 1
+        return np.log(arr)
+    else:
+        return np.ma.log(arr)
+
+
+def log2(args, arr):
+    if args.gpu:
+        arr[arr <= 0] = 1
+        return np.log2(arr)
+    else:
+        return np.ma.log2(arr)
 
 
 def original(args, stack):
@@ -27,8 +49,8 @@ def original(args, stack):
     ### 1609.01117 page 22
 
     deldensity = hist / hist.sum()
-    deldensity = deldensity * -(np.ma.log if args.abstract_entropy else np.ma.log2)(
-        deldensity
+    deldensity = deldensity * -(log if args.abstract_entropy else log2)(
+        args, deldensity
     )
     entropy = np.sum(deldensity)
     entropy /= 2  # 4.3 Papoulis generalized sampling halves the delentropy
@@ -55,7 +77,7 @@ def variationlight(args, stack):
     ### 1609.01117 page 22
 
     deldensity = hist / hist.sum()
-    deldensity = deldensity * -np.ma.log2(deldensity)
+    deldensity = deldensity * -log2(args, deldensity)
     entropy = np.sum(deldensity)
     entropy /= 2  # 4.3 Papoulis generalized sampling halves the delentropy
 
@@ -81,7 +103,7 @@ def variation(args, stack):
     ### 1609.01117 page 22
 
     deldensity = hist / hist.sum()
-    deldensity = deldensity * -np.ma.log2(deldensity)
+    deldensity = deldensity * -log2(args, deldensity)
     entropy = np.sum(deldensity)
     entropy /= 2  # 4.3 Papoulis generalized sampling halves the delentropy
 
@@ -116,7 +138,7 @@ def convolved(args, stack):
             )
 
             deldensity = hist / np.sum(hist)
-            deldensity = deldensity * -np.ma.log2(deldensity)
+            deldensity = deldensity * -log2(args, deldensity)
             entropy = np.sum(deldensity)
             entropy /= 2
             kernent.append(entropy)
