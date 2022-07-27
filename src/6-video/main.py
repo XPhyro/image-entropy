@@ -19,6 +19,13 @@ def parseargs():
     parser = argparse.ArgumentParser(description="Compute and display image entropy.")
 
     parser.add_argument(
+        "-B",
+        "--treat-binary",
+        help="treat given files as binary instead of video. if given, -H and -W are required.",
+        action="store_true",
+    )
+
+    parser.add_argument(
         "-b",
         "--buffer-size",
         help="how many frames to buffer",
@@ -44,6 +51,21 @@ def parseargs():
         "-g",
         "--greyscale",
         help="convert frames to greyscale",
+        action="store_true",
+    )
+
+    parser.add_argument(
+        "-H",
+        "--binary-height",
+        help="height of the video if -B is given",
+        type=argtypepint,
+        default=1200,
+    )
+
+    parser.add_argument(
+        "-L",
+        "--light-variation",
+        help="use light delentropy variation. uses less processing and memory.",
         action="store_true",
     )
 
@@ -107,6 +129,21 @@ def parseargs():
     )
 
     parser.add_argument(
+        "-W",
+        "--binary-width",
+        help="width of the video if -B is given",
+        type=argtypepint,
+        default=1920,
+    )
+
+    parser.add_argument(
+        "-Q",
+        "--binary-color",
+        help="enable color if -B is given",
+        action="store_true",
+    )
+
+    parser.add_argument(
         "-q",
         "--quiet",
         help="do not use stdout and stderr",
@@ -152,43 +189,21 @@ def argtypepint(val):
     return ival
 
 
-def processvideo(filename):
+def pipevideo(filename):
     log.info(f"reading {filename}")
-    streams = ffm.probe(filename, select_streams="v")["streams"]
-    nstreams = len(streams)
-    if nstreams == 0:
-        log.err("no video streams found in file, skipping")
-        return
 
-    log.info(f"found {nstreams} {'stream' if nstreams == 1 else 'streams'}")
     pipes = []
-    for i, stream in enumerate(streams):
-        streamidx = stream["index"]
-        streamhidx = streamidx + 1
 
-        log.info(f"processing stream {streamhidx}/{nstreams}")
-
-        log.info(f"total frame count: {stream.get('nb_frames')}")
-
-        shape = itemgetter("height", "width")(stream)
-        if not args.greyscale:
+    if args.treat_binary:
+        nstreams = 1
+        shape = (args.binary_height, args.binary_width)
+        if args.binary_color:
             shape = (*shape, 3)
-        shape = np.array(shape)
         framesize = int(np.prod(shape, dtype=int))
         log.info(f"shape: {shape}", f"frame size: {framesize}")
 
-        argv = (
-            ffm.input(filename)
-            .output(
-                "pipe:",
-                map=f"0:v:{i}",
-                format="rawvideo",
-                pix_fmt="gray" if args.greyscale else "rgb24",
-                loglevel="warning",
-            )
-            .compile()
-        )
-        log.info(f"compiled ffmpeg argv: {argv}")
+        argv = ["cat", "--", filename]
+        log.info(f"compiled argv: {argv}")
 
         bufsize = (framesize + 1) * args.buffer_size
         log.info(
@@ -201,6 +216,59 @@ def processvideo(filename):
 
         pipes.append(sp.Popen(argv, stdout=sp.PIPE, bufsize=bufsize))
         log.info("successfully opened pipe")
+    else:
+        streams = ffm.probe(filename, select_streams="v")["streams"]
+        nstreams = len(streams)
+        if nstreams == 0:
+            log.err("no video streams found in file, skipping")
+            return
+
+        log.info(f"found {nstreams} {'stream' if nstreams == 1 else 'streams'}")
+        for i, stream in enumerate(streams):
+            streamidx = stream["index"]
+            streamhidx = streamidx + 1
+
+            log.info(f"processing stream {streamhidx}/{nstreams}")
+
+            log.info(f"total frame count: {stream.get('nb_frames')}")
+
+            shape = itemgetter("height", "width")(stream)
+            if not args.greyscale:
+                shape = (*shape, 3)
+            shape = np.array(shape)
+            framesize = int(np.prod(shape, dtype=int))
+            log.info(f"shape: {shape}", f"frame size: {framesize}")
+
+            argv = (
+                ffm.input(filename)
+                .output(
+                    "pipe:",
+                    map=f"0:v:{i}",
+                    format="rawvideo",
+                    pix_fmt="gray" if args.greyscale else "rgb24",
+                    loglevel="warning",
+                )
+                .compile()
+            )
+            log.info(f"compiled argv: {argv}")
+
+            bufsize = (framesize + 1) * args.buffer_size
+            log.info(
+                f"max stack size: {args.max_stack_size}",
+                f"buffer size: {args.buffer_size}",
+                f"real buffer size: {bufsize}",
+                f"strict stack: {args.strict_stack}",
+                f"max frame count: {args.max_frame_count}",
+            )
+
+            pipes.append(sp.Popen(argv, stdout=sp.PIPE, bufsize=bufsize))
+            log.info("successfully opened pipe")
+
+    return (nstreams, shape, framesize, pipes)
+
+
+def processvideo(filename):
+    nstreams, shape, framesize, pipes = pipevideo(filename)
 
     # TODO: dynamically adjust size of stack depending on memory usage and computation time
     stack = []
@@ -277,7 +345,9 @@ def processvideo(filename):
 
         # TODO: implement joint entropy. make joint entropy default (but
         #       optional) via argparse.
-        entropy = delentropy.variationlight(args, stack)[0]
+        entropy = (
+            delentropy.variationlight if args.light_variation else delentropy.variation
+        )(args, stack)[0]
         log.info(
             f"entropy of frames {frameidx - stacksize + 1}-{frameidx + 1}: {entropy}"
         )
