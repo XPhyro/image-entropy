@@ -65,7 +65,7 @@ def parseargs():
     parser.add_argument(
         "-L",
         "--light-variation",
-        help="use light delentropy variation. uses less processing and memory.",
+        help="use lighter delentropy variation. uses less processing and memory.",
         action="store_true",
     )
 
@@ -267,7 +267,7 @@ def pipevideo(filename):
     return (nstreams, shape, framesize, pipes)
 
 
-def processvideo(filename):
+def processvideo(func, filename):
     nstreams, shape, framesize, pipes = pipevideo(filename)
 
     # TODO: dynamically adjust size of stack depending on memory usage and computation time
@@ -345,9 +345,7 @@ def processvideo(filename):
 
         # TODO: implement joint entropy. make joint entropy default (but
         #       optional) via argparse.
-        entropy = (
-            delentropy.variationlight if args.light_variation else delentropy.variation
-        )(args, stack)[0]
+        entropy, _ = func(args, stack)
         log.info(
             f"entropy of frames {frameidx - stacksize + 1}-{frameidx + 1}: {entropy}"
         )
@@ -363,8 +361,10 @@ def main():
         log.warnenabled = False
         log.errenabled = False
 
+    func = delentropy.variationlight if args.light_variation else delentropy.variation
+
     for file in args.files:
-        processvideo(file)
+        processvideo(func, file)
 
     log.dumpcaches()
 
