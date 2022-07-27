@@ -294,7 +294,7 @@ def main():
             plt.plot(np.arange(len(widths)), entropies)
             plt.title(f"{args.method}: {testname}")
             plt.tight_layout()
-            plt.savefig(f"{args.method}_{testname}.pdf", bbox_inches="tight")
+            plt.savefig(f"{testname}_{args.method}.pdf", bbox_inches="tight")
 
             entropyarrs.append(entropies)
             widtharrs.append(widths)
