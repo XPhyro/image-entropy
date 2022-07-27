@@ -8,6 +8,25 @@ logerrq() {
     exit 1
 }
 
+setfilter() {
+    if [ "$optfilter" -ne 0 ]; then
+        if command -v afgrep > /dev/null 2>&1; then
+            filter() {
+                afgrep -a 'main.py ['
+            }
+        else
+            printf "%s\n" "afgrep (from XPhyro/scripts) not found, falling back to grep." >&2
+            filter() {
+                grep '^main.py \['
+            }
+        fi
+    else
+        filter() {
+            cat
+        }
+    fi
+}
+
 segmentation() {
     optfilter=1
     unset pythonpath optmodel
@@ -18,7 +37,7 @@ segmentation() {
                 printf "%s" \
 "usage: $0 [-a] [-h] [-m] [-P] [-p] [-s] [ARG [ARG ...]] -- [ARG [ARG ...]]
 
-Quickly run the Python project using pre-set arguments.
+Quickly run the segmentation sub-project using pre-set arguments.
 
    -a        enable Ade20k semantic segmentation
    -h        show this help message and exit
@@ -36,24 +55,7 @@ Quickly run the Python project using pre-set arguments.
     done
     shift "$((OPTIND - 1))"
 
-    [ -z "$optmodel" ] && logerrq "One of -a, -m or -p must be given.\n"
-
-    if [ "$optfilter" -ne 0 ]; then
-        if command -v afgrep > /dev/null 2>&1; then
-            filter() {
-                afgrep -a 'main.py ['
-            }
-        else
-            printf "%s\n" "afgrep (from XPhyro/scripts) not found, falling back to grep." >&2
-            filter() {
-                grep '^main.py \['
-            }
-        fi
-    else
-        filter() {
-            cat
-        }
-    fi
+    setfilter
 
     [ -n "$pythonpath" ] \
         || pythonpath="$(command -v python3.7 2> /dev/null)" \
@@ -62,8 +64,9 @@ Quickly run the Python project using pre-set arguments.
         || logerrq "Could not find a suitable executable for Python. Supply one with -p option.\n"
 
     if [ "$#" -ne 0 ]; then
-        perf stat unbuffer \
-            "$pythonpath" src/development/main.py "$@"
+        perf stat \
+            unbuffer \
+                "$pythonpath" src/2-segmentation/main.py "$@"
     else
         case "$optmodel" in
             ade20k)
@@ -83,9 +86,43 @@ Quickly run the Python project using pre-set arguments.
                 datadir="data/color"
                 ;;
         esac
-        perf stat unbuffer \
-            "$pythonpath" src/development/main.py \
-                -k 15 -t 0.995 -s 0.8 -S "$opt" "$model" "$datadir"/*
+        perf stat \
+            unbuffer \
+                "$pythonpath" src/2-segmentation/main.py \
+                    -k 15 -t 0.995 -s 0.8 -S "$opt" "$model" "$datadir"/*
+    fi | filter
+}
+
+video() {
+    optfilter=1
+    while getopts "ahP:ps" OPT; do
+        case "$OPT" in
+            a) optmodel="ade20k";;
+            h)
+                printf "%s" \
+"usage: $0 [-a] [-h] [-m] [-P] [-p] [-s] [ARG [ARG ...]] -- [ARG [ARG ...]]
+
+Quickly run the video sub-project using pre-set arguments.
+
+   -h        show this help message and exit
+   -s        do not filter output
+"
+                exit 0
+                ;;
+            s) optfilter=0;;
+            *) printf "Invalid option given: %s\n" "$OPT"; exit 1;;
+        esac
+    done
+    shift "$((OPTIND - 1))"
+
+    setfilter
+
+    if [ "$#" -ne 0 ]; then
+        perf stat \
+            unbuffer \
+                src/6-video/main.py "$@"
+    else
+        : # TODO: presets not yet implemented
     fi | filter
 }
 
