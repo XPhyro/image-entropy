@@ -146,5 +146,6 @@ cython_debug/
 *.h5
 data/*/nosync*
 NOTES.md
+*model/
 
 .idea/
