@@ -16,7 +16,7 @@ import util
 
 
 def entropy(idx, fl, segmentation):
-    parentdir = f"results/{util.basename(fl)}"
+    parentdir = f"results/segmentation/{util.basename(fl)}"
 
     loginfo(f"CPU: Processing file {idx} - {fl}")
 
@@ -262,7 +262,7 @@ def segment(devname, inqueue, outqueue):
 
             loginfo(f"{devname}: Processing {idx} - {fl}")
 
-            parentdir = f"results/{util.basename(fl)}"
+            parentdir = f"results/segmentation/{util.basename(fl)}"
 
             util.makedirs(parentdir)
 
