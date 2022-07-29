@@ -25,6 +25,10 @@ def log2(args, arr):
         return np.ma.log2(arr)
 
 
+def autolog(args, arr):
+    return autolog(args, arr)
+
+
 def original(args, stack):
     ### 1609.01117 page 10
 
@@ -49,9 +53,7 @@ def original(args, stack):
     ### 1609.01117 page 22
 
     deldensity = hist / hist.sum()
-    deldensity = deldensity * -(log if args.abstract_entropy else log2)(
-        args, deldensity
-    )
+    deldensity = deldensity * -autolog(args, deldensity)
     entropy = np.sum(deldensity)
     entropy /= 2  # 4.3 Papoulis generalized sampling halves the delentropy
 
@@ -77,7 +79,7 @@ def variationlight(args, stack):
     ### 1609.01117 page 22
 
     deldensity = hist / hist.sum()
-    deldensity = deldensity * -log2(args, deldensity)
+    deldensity = deldensity * -autolog(args, deldensity)
     entropy = np.sum(deldensity)
     entropy /= 2  # 4.3 Papoulis generalized sampling halves the delentropy
 
@@ -103,7 +105,7 @@ def variation(args, stack):
     ### 1609.01117 page 22
 
     deldensity = hist / hist.sum()
-    deldensity = deldensity * -log2(args, deldensity)
+    deldensity = deldensity * -autolog(args, deldensity)
     entropy = np.sum(deldensity)
     entropy /= 2  # 4.3 Papoulis generalized sampling halves the delentropy
 
