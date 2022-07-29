@@ -522,6 +522,84 @@ def shannon2dr(args, colourimg, greyimg):
     )
 
 
+def shannon2dv1(args, colourimg, greyimg):
+    h, w = greyimg.shape
+    fy, fx = [], []
+
+    for y in range(h):
+        _, counts = np.unique(greyimg[y, :].flatten(), return_counts=True)
+        entropy = stats.entropy(counts, base=2)
+        fy.append(entropy)
+    for x in range(w):
+        _, counts = np.unique(greyimg[:, x].flatten(), return_counts=True)
+        entropy = stats.entropy(counts, base=2)
+        fx.append(entropy)
+
+    (histy, _), (histx, _) = (
+        np.histogram(fy, bins=16, range=[0, 8]),
+        np.histogram(fx, bins=16, range=[0, 8]),
+    )
+    hist = [histy, histx]
+
+    entdensity = hist / np.sum(hist)
+    entdensity = entdensity * -np.ma.log2(entdensity)
+    entropy = np.sum(entdensity)
+
+    log.info(
+        f"entropy: {entropy}",
+        f"entropy ratio: {entropy / 8.0}",
+    )
+
+    return (
+        entropy,
+        colourimg,
+        greyimg,
+        [],
+    )
+
+
+def shannon2dv2(args, colourimg, greyimg):
+    h, w = greyimg.shape
+
+    if h != w:
+        log.err("image must be a square, skipping.")
+        return (
+            -1,
+            colourimg,
+            greyimg,
+            [],
+        )
+
+    fy, fx = [], []
+
+    for y in range(h):
+        _, counts = np.unique(greyimg[y, :].flatten(), return_counts=True)
+        entropy = stats.entropy(counts, base=2)
+        fy.append(entropy)
+    for x in range(w):
+        _, counts = np.unique(greyimg[:, x].flatten(), return_counts=True)
+        entropy = stats.entropy(counts, base=2)
+        fx.append(entropy)
+
+    hist, _, _ = np.histogram2d(fx, fy, bins=16, range=[[0, 8], [0, 8]])
+
+    entdensity = hist / np.sum(hist)
+    entdensity = entdensity * -np.ma.log2(entdensity)
+    entropy = np.sum(entdensity)
+
+    log.info(
+        f"entropy: {entropy}",
+        f"entropy ratio: {entropy / 8.0}",
+    )
+
+    return (
+        entropy,
+        colourimg,
+        greyimg,
+        [],
+    )
+
+
 strtofunc = {
     "1d-kapur-variation": kapur1dv,
     "1d-shannon": shannon1d,
@@ -534,4 +612,6 @@ strtofunc = {
     "2d-gradient-cnn": gradient2dc,
     "2d-regional-scikit": scikit2dr,
     "2d-regional-shannon": shannon2dr,
+    "2d-shannon-variation-1": shannon2dv1,
+    "2d-shannon-variation-2": shannon2dv2,
 }
