@@ -308,7 +308,9 @@ def main():
 
     if args.save_tests is not None:
         for s, f in testimages.strtofunc.items():
-            cv.imwrite(f"{args.save_tests}/{s}.png", f())
+            cv.imwrite(
+                f"{args.save_tests}/{s}.png", f(args.test_width, args.test_height)
+            )
         sys.exit(0)
 
     log.info(f"selected method: {args.method}")
