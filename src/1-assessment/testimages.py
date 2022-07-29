@@ -6,11 +6,11 @@ SEED = 3141592653
 
 
 def gradlinearh(w=1024, h=1024):
-    return np.outer(np.ones(256), np.arange(256)).astype(np.uint8)
+    return np.outer(np.ones(w), np.arange(h)).astype(np.uint8)
 
 
 def gradlinearv(w=1024, h=1024):
-    return np.outer(np.arange(256), np.ones(256)).astype(np.uint8)
+    return np.outer(np.arange(w), np.ones(h)).astype(np.uint8)
 
 
 def gradconic(w=1024, h=1024):
