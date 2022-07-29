@@ -233,6 +233,63 @@ def delentropy2dv(args, colourimg, greyimg):
     )
 
 
+def delentropy2dv2(args, colourimg, greyimg):
+    ### 1609.01117 page 10
+
+    grad = np.gradient(greyimg).astype(int)
+    firstgrad = grad[0] + grad[1]
+
+    grad = np.gradient(firstgrad)
+    secondgrad = grad[0] + grad[1]
+
+    fx = grad[0].astype(int)
+    fy = grad[1].astype(int)
+    grad = fx + fy
+
+    # ensure $-255 \leq J \leq 255$
+    jrng = np.max([np.max(np.abs(fx)), np.max(np.abs(fy))])
+    assert jrng <= 255, "J must be in range [-255, 255]"
+
+    ### 1609.01117 page 16
+
+    hist, _, _ = np.histogram2d(
+        fx.flatten(),
+        fy.flatten(),
+        bins=255,
+        range=[[-jrng, jrng], [-jrng, jrng]],
+    )
+
+    ### 1609.01117 page 22
+
+    deldensity = hist / np.sum(hist)
+    deldensity = deldensity * -np.ma.log2(deldensity)
+    entropy = np.sum(deldensity)
+    entropy /= 2  # 4.3 Papoulis generalized sampling halves the delentropy
+
+    log.info(
+        f"entropy: {entropy}",
+        f"entropy ratio: {entropy / 8.0}",
+    )
+
+    # the reference image seems to be bitwise inverted, I don't know why.
+    # the entropy doesn't change when inverted, so both are okay in
+    # the previous computational steps.
+    param_invert = True
+
+    gradimg = np.invert(grad) if param_invert else grad
+
+    return (
+        entropy,
+        colourimg,
+        greyimg,
+        [
+            (firstgrad[0] + firstgrad[1], "First Degree Gradient", ["hasbar"]),
+            (secondgrad[0] + secondgrad[1], "Second Degree Gradient", ["hasbar"]),
+            (deldensity, "Deldensity", ["hasbar"]),
+        ],
+    )
+
+
 def gradient2dc(args, colourimg, greyimg):
     ### 1609.01117 page 10
 
@@ -471,9 +528,10 @@ strtofunc = {
     "2d-delentropy": delentropy2d,
     "2d-delentropy-ndim": delentropynd,
     "2d-delentropy-variation": delentropy2dv,
-    "2d-delentropy-variation-ndim": delentropyndv,
-    "2d-gradient-cnn": gradient2dc,
     "2d-delentropy-variation-cnn": delentropy2dvc,
+    "2d-delentropy-variation-ndim": delentropyndv,
+    "2d-delentropy-variation-second-degree": delentropy2dv2,
+    "2d-gradient-cnn": gradient2dc,
     "2d-regional-scikit": scikit2dr,
     "2d-regional-shannon": shannon2dr,
 }
