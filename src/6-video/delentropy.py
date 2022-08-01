@@ -10,19 +10,17 @@ def init(args):
 
 
 def log(args, arr):
-    if args.gpu:
-        arr[arr <= 0] = 1
-        return np.log(arr)
-    else:
+    if not args.gpu:
         return np.ma.log(arr)
+    arr[arr <= 0] = 1
+    return np.log(arr)
 
 
 def log2(args, arr):
-    if args.gpu:
-        arr[arr <= 0] = 1
-        return np.log2(arr)
-    else:
+    if not args.gpu:
         return np.ma.log2(arr)
+    arr[arr <= 0] = 1
+    return np.log2(arr)
 
 
 def autolog(args, arr):

@@ -234,8 +234,7 @@ def pipevideo(filename):
         streams = ffm.probe(filename, select_streams="v")["streams"]
         nstreams = len(streams)
         if nstreams == 0:
-            log.err("no video streams found in file, skipping")
-            return
+            return (0, None, None, None)
 
         log.info(f"found {nstreams} {'stream' if nstreams == 1 else 'streams'}")
         for i, stream in enumerate(streams):
@@ -283,6 +282,9 @@ def pipevideo(filename):
 
 def processvideo(func, filename):
     nstreams, shape, framesize, pipes = pipevideo(filename)
+    if nstreams == 0:
+        log.err("no video streams found in file, skipping")
+        return
 
     # TODO: dynamically adjust size of stack depending on memory usage and computation time
     stack = []
