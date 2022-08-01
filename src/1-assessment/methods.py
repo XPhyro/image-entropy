@@ -600,6 +600,53 @@ def shannon2dv2(args, colourimg, greyimg):
     )
 
 
+def shannon2dv3(args, colourimg, greyimg):
+    entimg = duplicate(greyimg)
+    imgshape = entimg.shape
+
+    kernsize = args.kernel_size
+    kernrad = round((kernsize - 1) / 2)
+
+    entropies = []
+    for i in range(imgshape[0]):
+        for j in range(imgshape[1]):
+            region = greyimg[
+                # ymax:ymin, xmax:xmin
+                np.max([0, i - kernrad]) : np.min([imgshape[0], i + kernrad]),
+                np.max([0, j - kernrad]) : np.min([imgshape[1], j + kernrad]),
+            ].flatten()
+            size = region.size
+
+            probs = [np.size(region[region == i]) / size for i in set(region)]
+            entropy = np.sum([p * np.log2(1 / p) for p in probs])
+
+            entropies.append(entropy)
+            entimg[i, j] = entropy
+
+    hist, _ = np.histogram(entimg.flatten(), bins=16, range=[0, 8])
+
+    entdensity = hist / np.sum(hist)
+    entdensity = entdensity * -np.ma.log2(entdensity)
+    entropy = np.sum(entdensity)
+
+    log.info(
+        f"entropy = {entropy}",
+    )
+
+    return (
+        entropy,
+        colourimg,
+        greyimg,
+        [
+            (
+                entimg,
+                f"Entropy Map With {kernsize}x{kernsize} Kernel",
+                ["hasbar"],
+            )
+        ],
+    )
+
+
 strtofunc = {
     "1d-kapur-variation": kapur1dv,
     "1d-shannon": shannon1d,
@@ -614,4 +661,5 @@ strtofunc = {
     "2d-regional-shannon": shannon2dr,
     "2d-shannon-variation-1": shannon2dv1,
     "2d-shannon-variation-2": shannon2dv2,
+    "2d-shannon-variation-3": shannon2dv3,
 }
