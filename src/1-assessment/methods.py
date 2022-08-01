@@ -536,8 +536,8 @@ def shannon2dv1(args, colourimg, greyimg):
         fx.append(entropy)
 
     (histy, _), (histx, _) = (
-        np.histogram(fy, bins=16, range=[0, 8]),
-        np.histogram(fx, bins=16, range=[0, 8]),
+        np.histogram(fy, bins=args.bins, range=[0, 8]),
+        np.histogram(fx, bins=args.bins, range=[0, 8]),
     )
     hist = [histy, histx]
 
@@ -581,7 +581,7 @@ def shannon2dv2(args, colourimg, greyimg):
         entropy = stats.entropy(counts, base=2)
         fx.append(entropy)
 
-    hist, _, _ = np.histogram2d(fx, fy, bins=16, range=[[0, 8], [0, 8]])
+    hist, _, _ = np.histogram2d(fx, fy, bins=args.bins, range=[[0, 8], [0, 8]])
 
     entdensity = hist / np.sum(hist)
     entdensity = entdensity * -np.ma.log2(entdensity)
@@ -623,7 +623,7 @@ def shannon2dv3(args, colourimg, greyimg):
             entropies.append(entropy)
             entimg[i, j] = entropy
 
-    hist, _ = np.histogram(entimg.flatten(), bins=16, range=[0, 8])
+    hist, _ = np.histogram(entimg.flatten(), bins=args.bins, range=[0, 8])
 
     entdensity = hist / np.sum(hist)
     entdensity = entdensity * -np.ma.log2(entdensity)
@@ -647,6 +647,37 @@ def shannon2dv3(args, colourimg, greyimg):
     )
 
 
+def shannon2dv4(args, colourimg, greyimg):
+    kernshape = (args.kernel_size,) * 2
+    kerns = np.lib.stride_tricks.as_strided(
+        greyimg,
+        tuple(np.subtract(greyimg.shape, kernshape) + 1) + kernshape,
+        greyimg.strides * 2,
+    )
+    entropies = []
+
+    for kern in kerns:
+        size = kern.size
+
+        probs = [np.size(kern[kern == i]) / size for i in set(kern)]
+        entropy = np.sum([p * np.log2(1 / p) for p in probs])
+
+        entropies.append(entropy)
+
+    hist, _ = np.histogram(entropies, bins=args.bins, range=[0, 8])
+
+    entdensity = hist / np.sum(hist)
+    entdensity = entdensity * -np.ma.log2(entdensity)
+    entropy = np.sum(entdensity)
+
+    return (
+        entropy,
+        colourimg,
+        greyimg,
+        [],
+    )
+
+
 strtofunc = {
     "1d-kapur-variation": kapur1dv,
     "1d-shannon": shannon1d,
@@ -662,4 +693,5 @@ strtofunc = {
     "2d-shannon-variation-1": shannon2dv1,
     "2d-shannon-variation-2": shannon2dv2,
     "2d-shannon-variation-3": shannon2dv3,
+    "2d-shannon-variation-4": shannon2dv4,
 }

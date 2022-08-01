@@ -13,6 +13,14 @@ def getargs():
     opgroup = parser.add_mutually_exclusive_group()
 
     parser.add_argument(
+        "-b",
+        "--bins-count",
+        help="count of bins for some methods",
+        type=argtypepint,
+        default=16,
+    )
+
+    parser.add_argument(
         "-g",
         "--no-grey-image",
         help="do not display greyscale image on plot.",
@@ -172,19 +180,26 @@ def getargs():
 def argtypekernelsize(val):
     ival = int(val)
     if ival <= 1 or ival % 2 != 1:
-        raise argparse.ArgumentTypeError(f"{ival} is not a valid kernel size.")
+        raise argparse.ArgumentTypeError(f"{ival} must be a valid kernel size.")
     return ival
 
 
 def argtyperadius(val):
     ival = int(val)
     if ival <= 2:
-        raise argparse.ArgumentTypeError(f"{ival} is not a radius.")
+        raise argparse.ArgumentTypeError(f"{ival} must be a radius.")
     return ival
 
 
 def argtypeuint(val):
     ival = int(val)
     if ival < 0:
-        raise argparse.ArgumentTypeError(f"{ival} is not a non-negative integer.")
+        raise argparse.ArgumentTypeError(f"{ival} must be a non-negative integer.")
+    return ival
+
+
+def argtypepint(val):
+    ival = int(val)
+    if ival <= 0:
+        raise argparse.ArgumentTypeError(f"{ival} must be a positive integer.")
     return ival
