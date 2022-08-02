@@ -678,6 +678,24 @@ def shannon2dv4(args, colourimg, greyimg):
     )
 
 
+def shannon2d(args, colourimg, greyimg):
+    img = np.array(greyimg).flatten()
+    hist, _, _ = np.histogram2d(img, img, bins=256)
+
+    entdensity = hist / np.sum(hist)
+    entdensity = entdensity * -np.ma.log2(entdensity)
+    entropy = np.sum(entdensity)
+
+    log.info(f"entropy = {entropy}")
+
+    return (
+        entropy,
+        colourimg,
+        greyimg,
+        [],
+    )
+
+
 strtofunc = {
     "1d-kapur-variation": kapur1dv,
     "1d-shannon": shannon1d,
@@ -694,4 +712,5 @@ strtofunc = {
     "2d-shannon-variation-2": shannon2dv2,
     "2d-shannon-variation-3": shannon2dv3,
     "2d-shannon-variation-4": shannon2dv4,
+    "2d-shannon": shannon2d,
 }
