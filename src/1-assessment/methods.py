@@ -536,8 +536,8 @@ def shannon2dv1(args, colourimg, greyimg):
         fx.append(entropy)
 
     (histy, _), (histx, _) = (
-        np.histogram(fy, bins=args.bins, range=[0, 8]),
-        np.histogram(fx, bins=args.bins, range=[0, 8]),
+        np.histogram(fy, bins=args.bins_count, range=[0, 8]),
+        np.histogram(fx, bins=args.bins_count, range=[0, 8]),
     )
     hist = [histy, histx]
 
@@ -581,7 +581,7 @@ def shannon2dv2(args, colourimg, greyimg):
         entropy = stats.entropy(counts, base=2)
         fx.append(entropy)
 
-    hist, _, _ = np.histogram2d(fx, fy, bins=args.bins, range=[[0, 8], [0, 8]])
+    hist, _, _ = np.histogram2d(fx, fy, bins=args.bins_count, range=[[0, 8], [0, 8]])
 
     entdensity = hist / np.sum(hist)
     entdensity = entdensity * -np.ma.log2(entdensity)
@@ -623,7 +623,7 @@ def shannon2dv3(args, colourimg, greyimg):
             entropies.append(entropy)
             entimg[i, j] = entropy
 
-    hist, _ = np.histogram(entimg.flatten(), bins=args.bins, range=[0, 8])
+    hist, _ = np.histogram(entimg.flatten(), bins=args.bins_count, range=[0, 8])
 
     entdensity = hist / np.sum(hist)
     entdensity = entdensity * -np.ma.log2(entdensity)
@@ -664,7 +664,7 @@ def shannon2dv4(args, colourimg, greyimg):
 
         entropies.append(entropy)
 
-    hist, _ = np.histogram(entropies, bins=args.bins, range=[0, 8])
+    hist, _ = np.histogram(entropies, bins=args.bins_count, range=[0, 8])
 
     entdensity = hist / np.sum(hist)
     entdensity = entdensity * -np.ma.log2(entdensity)
