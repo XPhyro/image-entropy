@@ -58,3 +58,10 @@
 - Isolate TensorFlow configuration and segmentation worker(s) from the main
   process to force TensorFlow to free device memory. Currently, the TPU/GPU/CPU
   memory stays allocated to the main process even after the segmentation.
+
+
+# 6 - Video
+
+## Features
+- Apply a scaling factor based on pi for that shape.
+  - Implement a dynamically managed table for pi scaling for unique shapes.
