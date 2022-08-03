@@ -24,7 +24,7 @@ def log2(args, arr):
 
 
 def autolog(args, arr):
-    return autolog(args, arr)
+    return log(args, arr) if args.abstract_entropy else log2(args, arr)
 
 
 def original(args, stack):
