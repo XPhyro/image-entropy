@@ -215,6 +215,8 @@ def parserefs():
     global refs
     global refpath
 
+    log.info("parsing reference cache")
+
     refdir = (
         os.environ.get("XDG_CACHE_HOME") or f"{os.environ['HOME']}/.cache"
     ) + "/ivmer/lava-lamp/ndim-entropy"
@@ -222,11 +224,13 @@ def parserefs():
     refpath = f"{refdir}/{reffl}"
 
     if not os.path.exists(refpath):
+        log.info("creating empty reference cache")
         if not os.path.exists(refdir):
             os.makedirs(refdir)
         with open(refpath, "w", encoding="utf-8") as fl:
             fl.write("{}\n")
 
+    log.info("loading reference cache")
     with open(refpath, "r", encoding="utf-8") as fl:
         refs = json.load(fl)
 
@@ -254,12 +258,18 @@ def getref(shape):
         ]
     )
     hashstr = f"[{shapeparams}], [{argparams}]"
+    log.info(f"searching for a suitable reference for {hashstr}")
+
     if args.pi_path:
+        log.info(f"trying pi reference")
         if (ref := refs.get(f"Pi: {hashstr}")) is None:
             if args.pi_path and (ref := calcref(shape, args.pi_path)) is not None:
                 refs[f"Pi: {hashstr}"] = ref
                 overwriterefs()
-    if ref is None and (ref := refs.get(f"urandom: {hashstr}")) is None:
+    if (not args.pi_path or ref is None) and (
+        ref := refs.get(f"urandom: {hashstr}")
+    ) is None:
+        log.info(f"trying urandom reference")
         if (ref := calcref(shape, "/dev/urandom")) is not None:
             refs[f"urandom: {hashstr}"] = ref
             overwriterefs()
@@ -267,6 +277,7 @@ def getref(shape):
 
 
 def overwriterefs():
+    log.info(f"updating reference cache")
     with open(refpath, "w", encoding="utf-8") as fl:
         json.dump(
             refs,
@@ -280,7 +291,11 @@ def overwriterefs():
 def calcref(shape, path):
     global args
 
-    _args = args
+    max_frame_count = args.max_frame_count
+    strict_stack = args.strict_stack
+    treat_binary = args.treat_binary
+    binary_height = args.binary_height
+    binary_width = args.binary_width
 
     args.max_frame_count = args.max_stack_size
     args.strict_stack = True
@@ -288,10 +303,17 @@ def calcref(shape, path):
     args.binary_height = shape[0]
     args.binary_width = shape[1]
 
-    args = _args
+    entropies = processvideo(path, False)
 
-    if (entropies := processvideo(path, False)) is not None:
+    args.max_frame_count = max_frame_count
+    args.strict_stack = strict_stack
+    args.treat_binary = treat_binary
+    args.binary_height = binary_height
+    args.binary_width = binary_width
+
+    if entropies is not None:
         return np.mean(entropies)
+
     return None
 
 
@@ -399,6 +421,7 @@ def processvideo(filename, normalise=True):
         while pipe is None:
             pipe = pipes[pipeidx]
             if not pipe.stdout.readable():
+                log.info(f"pipe {pipe} is not readable, removing")
                 pipes.pop(pipeidx)
                 nstreams -= 1
                 pipeidx = pipeidx % nstreams
