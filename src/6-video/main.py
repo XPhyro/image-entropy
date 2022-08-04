@@ -3,6 +3,8 @@
 
 from operator import itemgetter
 import argparse
+import json
+import os
 import subprocess as sp
 import sys
 
@@ -203,6 +205,77 @@ def argtypepint(val):
     return ival
 
 
+def parserefs():
+    global refs
+    global refpath
+
+    refdir = (
+        os.environ.get("XDG_CACHE_HOME") or f"{os.environ['HOME']}/.cache"
+    ) + "/ivmer/lava-lamp/ndim-entropy"
+    reffl = "reference.json"
+    refpath = f"{refdir}/{reffl}"
+
+    if not os.path.exists(refpath):
+        if not os.path.exists(refdir):
+            os.makedirs(refdir)
+        with open(refpath, "w") as fl:
+            fl.write("{}\n")
+
+    with open(refpath, "r") as fl:
+        refs = json.load(fl)
+
+
+def getref(shape):
+    shapeparams = ", ".join(np.char.mod("%d", shape))
+    argparams = ", ".join(
+        str(i)
+        for i in [
+            args.abstract_entropy,
+            args.buffer_size,
+            args.cycle_rgb,
+            args.stack_is_stream,
+            args.greyscale,
+            args.binary_height,
+            args.light_variation,
+            args.stack_period,
+            args.stack_modulus,
+            args.max_frame_count,
+            args.skip_period,
+            args.strict_stack,
+            args.max_stack_size,
+            args.binary_width,
+            args.binary_color,
+        ]
+    )
+    hashstr = f"[{shapeparams}], [{argparams}]"
+    if not (ref := refs.get(hashstr)):
+        ref = calcref(shape)
+        refs[hashstr] = ref
+        overwriterefs()
+    return ref
+
+
+def overwriterefs():
+    with open(refpath, "w", encoding="utf-8") as fl:
+        json.dump(
+            refs,
+            fl,
+            ensure_ascii=False,
+            indent=4,
+            separators=[", ", ": "],
+        )
+
+
+def calcref(shape):
+    global args
+    _args = args
+    args.max_frame_count = args.max_stack_size
+    args.strict_stack = True
+    args.treat_binary = True
+    args = _args
+    return np.mean(processvideo(func, "/dev/urandom", False))
+
+
 def pipevideo(filename):
     log.info(f"reading {filename}")
 
@@ -280,11 +353,13 @@ def pipevideo(filename):
     return (nstreams, shape, framesize, pipes)
 
 
-def processvideo(func, filename):
+def processvideo(func, filename, normalise=True):
     nstreams, shape, framesize, pipes = pipevideo(filename)
     if nstreams == 0:
         log.err("no video streams found in file, skipping")
         return
+    if normalise:
+        ref = getref(shape)
 
     # TODO: dynamically adjust size of stack depending on memory usage and computation time
     stack = []
@@ -296,6 +371,7 @@ def processvideo(func, filename):
     stackskip = 0
     rgbframe = np.zeros(shape)
     rgbturn = 0
+    entropies = []
     while args.max_frame_count == 0 or frameidx < args.max_frame_count:
         pipe = None
         while pipe is None:
@@ -362,13 +438,21 @@ def processvideo(func, filename):
         # TODO: implement joint entropy. make joint entropy default (but
         #       optional) via argparse.
         entropy, _ = func(args, stack)
+        if normalise:
+            entropy /= ref
+        entropies.append(entropy)
         log.info(
             f"entropy of frames {frameidx - stacksize + 1}-{frameidx + 1} ({stacksize}): {entropy}"
         )
 
+    return entropies
+
 
 def main():
+    global func
+
     parseargs()
+    parserefs()
 
     log.spongeout = args.sponge_out
     log.spongeerr = args.sponge_err
