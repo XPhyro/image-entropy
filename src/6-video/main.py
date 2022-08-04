@@ -110,6 +110,12 @@ def parseargs():
     )
 
     parser.add_argument(
+        "-P",
+        "--pi-path",
+        help="path to binary pi file",
+    )
+
+    parser.add_argument(
         "-p",
         "--skip-period",
         help="skip every nth frame. 0 is no skipping. if non-zero, frame indices shown will be wrong. default is 0.",
@@ -248,11 +254,15 @@ def getref(shape):
         ]
     )
     hashstr = f"[{shapeparams}], [{argparams}]"
-    if not (ref := refs.get(hashstr)):
-        if (ref := calcref(shape)) is None:
-            return None
-        refs[hashstr] = ref
-        overwriterefs()
+    if args.pi_path:
+        if (ref := refs.get(f"Pi: {hashstr}")) is None:
+            if args.pi_path and (ref := calcref(shape, args.pi_path)) is not None:
+                refs[f"Pi: {hashstr}"] = ref
+                overwriterefs()
+    if ref is None and (ref := refs.get(f"urandom: {hashstr}")) is None:
+        if (ref := calcref(shape, "/dev/urandom")) is not None:
+            refs[f"urandom: {hashstr}"] = ref
+            overwriterefs()
     return ref
 
 
@@ -267,7 +277,7 @@ def overwriterefs():
         )
 
 
-def calcref(shape):
+def calcref(shape, path):
     global args
 
     _args = args
@@ -280,7 +290,7 @@ def calcref(shape):
 
     args = _args
 
-    if (entropies := processvideo("/dev/urandom", False)) is not None:
+    if (entropies := processvideo(path, False)) is not None:
         return np.mean(entropies)
     return None
 
