@@ -272,6 +272,8 @@ def calcref(shape):
     args.max_frame_count = args.max_stack_size
     args.strict_stack = True
     args.treat_binary = True
+    args.binary_height = shape[0]
+    args.binary_width = shape[1]
     args = _args
     return np.mean(processvideo(func, "/dev/urandom", False))
 
