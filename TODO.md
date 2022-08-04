@@ -63,5 +63,4 @@
 # 6 - Video
 
 ## Features
-- Apply a scaling factor based on pi for that shape.
-  - Implement a dynamically managed table for pi scaling for unique shapes.
+- Implement dynamically adjusted multi-stacking.
