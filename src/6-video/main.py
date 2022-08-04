@@ -363,7 +363,7 @@ def processvideo(func, filename):
         #       optional) via argparse.
         entropy, _ = func(args, stack)
         log.info(
-            f"entropy of frames {frameidx - stacksize + 1}-{frameidx + 1}: {entropy}"
+            f"entropy of frames {frameidx - stacksize + 1}-{frameidx + 1} ({stacksize}): {entropy}"
         )
 
 

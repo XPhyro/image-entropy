@@ -28,6 +28,7 @@ def autolog(args, arr):
 
 
 def original(args, stack):
+    stack = np.array(stack)
     ### 1609.01117 page 10
 
     # $\nabla f(n) \approx f(n) - f(n - 1)$
@@ -53,12 +54,15 @@ def original(args, stack):
     deldensity = hist / hist.sum()
     deldensity = deldensity * -autolog(args, deldensity)
     entropy = np.sum(deldensity)
-    entropy /= 2  # 4.3 Papoulis generalized sampling halves the delentropy
+    entropy /= 2 ** (
+        len(stack.shape) - 1
+    )  # 4.3 Papoulis generalized sampling halves the delentropy
 
     return (entropy, (fx + fy, hist, deldensity))
 
 
 def variationlight(args, stack):
+    stack = np.array(stack)
     ### 1609.01117 page 10
 
     flatgrad = np.array(np.gradient(stack)).flatten()
@@ -79,12 +83,15 @@ def variationlight(args, stack):
     deldensity = hist / hist.sum()
     deldensity = deldensity * -autolog(args, deldensity)
     entropy = np.sum(deldensity)
-    entropy /= 2  # 4.3 Papoulis generalized sampling halves the delentropy
+    entropy /= 2 ** (
+        len(stack.shape) - 1
+    )  # 4.3 Papoulis generalized sampling halves the delentropy
 
     return (entropy, (flatgrad, hist, deldensity))
 
 
 def variation(args, stack):
+    stack = np.array(stack)
     ### 1609.01117 page 10
 
     grad = np.array([f.astype(int).flatten() for f in np.gradient(stack)])
@@ -105,13 +112,16 @@ def variation(args, stack):
     deldensity = hist / hist.sum()
     deldensity = deldensity * -autolog(args, deldensity)
     entropy = np.sum(deldensity)
-    entropy /= 2  # 4.3 Papoulis generalized sampling halves the delentropy
+    entropy /= 2 ** (
+        len(stack.shape) - 1
+    )  # 4.3 Papoulis generalized sampling halves the delentropy
 
     return (entropy, (grad, hist, deldensity))
 
 
 # TODO: generalise to n dimensions
 def convolved(args, stack):
+    stack = np.array(stack)
     kernshape = (args.kernel_size,) * 2
     kerns = np.lib.stride_tricks.as_strided(
         stack,
@@ -140,7 +150,7 @@ def convolved(args, stack):
             deldensity = hist / np.sum(hist)
             deldensity = deldensity * -log2(args, deldensity)
             entropy = np.sum(deldensity)
-            entropy /= 2
+            entropy /= 2 ** (len(stack.shape) - 1)
             kernent.append(entropy)
 
     kernent = np.reshape(kernent, itemgetter(0, 1)(kerns.shape))
