@@ -133,7 +133,7 @@ def entropy(idx, fl, segmentation):
         hist, _, _ = np.histogram2d(
             objfx.flatten(),
             objfy.flatten(),
-            bins=255,
+            bins=256,
             range=[[-jrng, jrng], [-jrng, jrng]],
         )
 

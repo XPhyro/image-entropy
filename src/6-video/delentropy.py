@@ -38,7 +38,7 @@ def variationlight(args, stack):
 
     hist, _ = np.histogram(
         flatgrad,
-        bins=255,
+        bins=256,
     )
 
     ### 1609.01117 page 22
@@ -67,7 +67,7 @@ def variation(args, stack):
 
     hist, _ = np.histogramdd(
         np.vstack(grad).transpose(),
-        bins=255,
+        bins=256,
     )
 
     ### 1609.01117 page 22
