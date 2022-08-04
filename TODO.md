@@ -64,3 +64,7 @@
 
 ## Features
 - Implement dynamically adjusted multi-stacking.
+  - Create a subprocess for each stack.
+  - Pipe the source video to each stack, and prioritise offset frames in each
+    stack.
+  - If entropy is too low with offset prioritisation, try shuffling offsets.
