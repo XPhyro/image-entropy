@@ -9,22 +9,22 @@ def init(args):
         import numpy as np
 
 
-def log(args, arr):
+def _log(args, arr):
     if not args.gpu:
         return np.ma.log(arr)
     arr[arr <= 0] = 1
     return np.log(arr)
 
 
-def log2(args, arr):
+def _log2(args, arr):
     if not args.gpu:
         return np.ma.log2(arr)
     arr[arr <= 0] = 1
     return np.log2(arr)
 
 
-def autolog(args, arr):
-    return log(args, arr) if args.abstract_entropy else log2(args, arr)
+def _autolog(args, arr):
+    return _log(args, arr) if args.abstract_entropy else _log2(args, arr)
 
 
 def variationlight(args, stack):
@@ -47,7 +47,7 @@ def variationlight(args, stack):
     ### 1609.01117 page 22
 
     deldensity = hist / hist.sum()
-    deldensity = deldensity * -autolog(args, deldensity)
+    deldensity = deldensity * -_autolog(args, deldensity)
     entropy = np.sum(deldensity)
     entropy /= 2 ** (
         len(stack.shape) - 1
@@ -76,7 +76,7 @@ def variation(args, stack):
     ### 1609.01117 page 22
 
     deldensity = hist / hist.sum()
-    deldensity = deldensity * -autolog(args, deldensity)
+    deldensity = deldensity * -_autolog(args, deldensity)
     entropy = np.sum(deldensity)
     entropy /= 2 ** (
         len(stack.shape) - 1
