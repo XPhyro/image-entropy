@@ -218,10 +218,10 @@ def parserefs():
     if not os.path.exists(refpath):
         if not os.path.exists(refdir):
             os.makedirs(refdir)
-        with open(refpath, "w") as fl:
+        with open(refpath, "w", encoding="utf-8") as fl:
             fl.write("{}\n")
 
-    with open(refpath, "r") as fl:
+    with open(refpath, "r", encoding="utf-8") as fl:
         refs = json.load(fl)
 
 
@@ -249,7 +249,8 @@ def getref(shape):
     )
     hashstr = f"[{shapeparams}], [{argparams}]"
     if not (ref := refs.get(hashstr)):
-        ref = calcref(shape)
+        if (ref := calcref(shape)) is None:
+            return None
         refs[hashstr] = ref
         overwriterefs()
     return ref
@@ -268,14 +269,20 @@ def overwriterefs():
 
 def calcref(shape):
     global args
+
     _args = args
+
     args.max_frame_count = args.max_stack_size
     args.strict_stack = True
     args.treat_binary = True
     args.binary_height = shape[0]
     args.binary_width = shape[1]
+
     args = _args
-    return np.mean(processvideo(func, "/dev/urandom", False))
+
+    if (entropies := processvideo("/dev/urandom", False)) is not None:
+        return np.mean(entropies)
+    return None
 
 
 def pipevideo(filename):
@@ -355,13 +362,16 @@ def pipevideo(filename):
     return (nstreams, shape, framesize, pipes)
 
 
-def processvideo(func, filename, normalise=True):
+def processvideo(filename, normalise=True):
     nstreams, shape, framesize, pipes = pipevideo(filename)
     if nstreams == 0:
         log.err("no video streams found in file, skipping")
-        return
+        return None
     if normalise:
         ref = getref(shape)
+        if ref is None:
+            log.warn("no reference found, not normalising")
+            normalise = False
 
     # TODO: dynamically adjust size of stack depending on memory usage and computation time
     stack = []
@@ -468,7 +478,7 @@ def main():
     func = delentropy.variationlight if args.light_variation else delentropy.variation
 
     for file in args.files:
-        processvideo(func, file)
+        processvideo(file)
 
     log.dumpcaches()
 
