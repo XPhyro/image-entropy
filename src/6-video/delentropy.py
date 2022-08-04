@@ -1,6 +1,3 @@
-from operator import itemgetter
-
-
 def init(args):
     global np
     if args.gpu:
