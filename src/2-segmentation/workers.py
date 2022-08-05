@@ -240,19 +240,24 @@ def segment(devname, inqueue, outqueue):
         if args.semantic_model_ade20k:
             loginfo(f"{devname}: Loading model {args.semantic_model_ade20k}.")
             semanticsegmenter.load_ade20k_model(args.semantic_model_ade20k)
-            getsegmented = lambda fl, parentdir: semanticsegmenter.segmentAsAde20k(
-                fl,
-                output_image_name=f"{parentdir}/segmentation-semantic-ade20k.png",
-                overlay=False,
-            )
+
+            def getsegmented(fl, parentdir):
+                semanticsegmenter.segmentAsAde20k(
+                    fl,
+                    output_image_name=f"{parentdir}/segmentation-semantic-ade20k.png",
+                    overlay=False,
+                )
+
         else:
             loginfo(f"{devname}: Loading model {args.semantic_model_pascalvoc}.")
             semanticsegmenter.load_pascalvoc_model(args.semantic_model_pascalvoc)
-            getsegmented = lambda fl, parentdir: semanticsegmenter.segmentAsPascalvoc(
-                fl,
-                output_image_name=f"{parentdir}/segmentation-semantic-pascalvoc.png",
-                overlay=False,
-            )
+
+            def getsegmented(fl, parentdir):
+                semanticsegmenter.segmentAsPascalvoc(
+                    fl,
+                    output_image_name=f"{parentdir}/segmentation-semantic-pascalvoc.png",
+                    overlay=False,
+                )
 
         while True:
             try:

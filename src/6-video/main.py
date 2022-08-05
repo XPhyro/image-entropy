@@ -261,7 +261,7 @@ def getref(shape):
     log.info(f"searching for a suitable reference for {hashstr}")
 
     if args.pi_path:
-        log.info(f"trying pi reference")
+        log.info("trying pi reference")
         if (ref := refs.get(f"Pi: {hashstr}")) is None:
             if args.pi_path and (ref := calcref(shape, args.pi_path)) is not None:
                 refs[f"Pi: {hashstr}"] = ref
@@ -269,7 +269,7 @@ def getref(shape):
     if (not args.pi_path or ref is None) and (
         ref := refs.get(f"urandom: {hashstr}")
     ) is None:
-        log.info(f"trying urandom reference")
+        log.info("trying urandom reference")
         if (ref := calcref(shape, "/dev/urandom")) is not None:
             refs[f"urandom: {hashstr}"] = ref
             overwriterefs()
@@ -277,7 +277,7 @@ def getref(shape):
 
 
 def overwriterefs():
-    log.info(f"updating reference cache")
+    log.info("updating reference cache")
     with open(refpath, "w", encoding="utf-8") as fl:
         json.dump(
             refs,
@@ -289,8 +289,6 @@ def overwriterefs():
 
 
 def calcref(shape, path):
-    global args
-
     max_frame_count = args.max_frame_count
     strict_stack = args.strict_stack
     treat_binary = args.treat_binary
