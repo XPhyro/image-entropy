@@ -3,8 +3,12 @@
 set -x
 exec 2>&1
 
+loginfo() {
+    printf "$execname: %s\n" "$@"
+}
+
 logerrq() {
-    printf "%s\n" "$@" >&2
+    printf "$execname: %s\n" "$@" >&2
     exit 1
 }
 
@@ -50,7 +54,7 @@ Quickly run the segmentation sub-project using pre-set arguments.
             P) pythonpath="$OPT";;
             p) optmodel="pascalvoc";;
             s) optfilter=0;;
-            *) printf "Invalid option given: %s\n" "$OPT"; exit 1;;
+            *) printf "invalid option given: %s\n" "$OPT"; exit 1;;
         esac
     done
     shift "$((OPTIND - 1))"
@@ -61,7 +65,7 @@ Quickly run the segmentation sub-project using pre-set arguments.
         || pythonpath="$(command -v python3.7 2> /dev/null)" \
         || pythonpath="$(command -v python3 2> /dev/null)" \
         || pythonpath="$(command -v python 2> /dev/null)" \
-        || logerrq "Could not find a suitable executable for Python. Supply one with -p option.\n"
+        || logerrq "could not find a suitable executable for Python, supply one with -p option\n"
 
     if [ "$#" -ne 0 ]; then
         perf stat \
@@ -110,7 +114,7 @@ Quickly run the video sub-project using pre-set arguments.
                 exit 0
                 ;;
             s) optfilter=0;;
-            *) printf "Invalid option given: %s\n" "$OPT"; exit 1;;
+            *) printf "invalid option given: %s\n" "$OPT"; exit 1;;
         esac
     done
     shift "$((OPTIND - 1))"
@@ -122,15 +126,18 @@ Quickly run the video sub-project using pre-set arguments.
             unbuffer \
                 src/6-video/main.py "$@"
     else
-        : # TODO: presets not yet implemented
+        loginfo "presets are not yet implemented" # TODO: presets not yet implemented
     fi | filter
 }
+
+execname="$0"
 
 [ "$#" -eq 0 ] && logerrq "no subcommand given"
 subcmd="$1"
 shift
 case "$subcmd" in
     2|s|seg|segmentation|2-segmentation) segmentation "$@";;
+    6|v|vid|video|6-video) video "$@";;
     *) logerrq "invalid or not-supported subcommand";;
 esac
 
