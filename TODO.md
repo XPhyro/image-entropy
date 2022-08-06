@@ -68,3 +68,5 @@
   - Pipe the source video to each stack, and prioritise offset frames in each
     stack.
   - If entropy is too low with offset prioritisation, try shuffling offsets.
+  - Try writing the assessment part in C/C++, and calling the command from
+    Python, consistent with the aforementioned subprocessed stack management.
