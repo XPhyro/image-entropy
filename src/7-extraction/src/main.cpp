@@ -11,8 +11,7 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 
-#include <cstdutil.hpp>
-#include <xtl/xany.hpp>
+#include <cstdutil>
 
 #include "xtensor.hpp"
 
