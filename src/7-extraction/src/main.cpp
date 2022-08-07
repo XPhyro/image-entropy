@@ -45,7 +45,7 @@ int main(int argc, char* argv[])
     size = dim;
     std::cout << width << '\n' << height << '\n' << dim << '\n' << size << '\n';
 
-    uint8_t* buf = (uint8_t*)amalloc(size);
+    auto buf = (uint8_t*)amalloc(size);
     read(STDIN_FILENO, buf, size);
 
     xt::static_shape<size_t, 2> shape = { width, height };
