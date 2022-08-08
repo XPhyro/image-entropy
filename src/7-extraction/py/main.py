@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 
 
-from sys import exit
+import sys
 
 import numpy as np
+
+import log
 
 
 def processvideo():
