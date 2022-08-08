@@ -70,3 +70,5 @@
   - If entropy is too low with offset prioritisation, try shuffling offsets.
   - Try writing the assessment part in C/C++, and calling the command from
     Python, consistent with the aforementioned subprocessed stack management.
+- Incorporate `XPhyro/scripts/fmapc` and accept hex pi files (as a separate
+  option or automatically detected?).
