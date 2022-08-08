@@ -1,3 +1,6 @@
+np = None  # suppress Pylint E0602
+
+
 def init(args):
     global np
     if args.gpu:
