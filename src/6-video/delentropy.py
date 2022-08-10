@@ -1,10 +1,17 @@
+from log import err as logerr
+
+
 np = None  # suppress Pylint E0602
 
 
 def init(args):
     global np
     if args.gpu:
-        import cupy as np
+        try:
+            import cupy as np
+        except ModuleNotFoundError:
+            logerr("cupy not found, falling back to numpy")
+            import numpy as np
     else:
         import numpy as np
 
