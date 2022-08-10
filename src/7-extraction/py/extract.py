@@ -59,6 +59,13 @@ def parseargs():
     )
 
     parser.add_argument(
+        "-d",
+        "--double-buffer",
+        help="double buffer stack",
+        action="store_true",
+    )
+
+    parser.add_argument(
         "-G",
         "--gpu",
         help="use GPU",
@@ -210,8 +217,8 @@ def parseargs():
 
     args.files = args.files[:-specscount]
 
-    # TODO: support non-strict stack
-    args.strict_stack = True
+    if not args.double_buffer:
+        args.strict_stack = True
 
 
 def argtypeuint(val):
@@ -275,7 +282,8 @@ def extractbits():
                 continue
             frame = rgbframe
 
-        oldstack = [i for i in stack]
+        if args.double_buffer:
+            oldstack = [i for i in stack]
 
         stacksize = len(stack)
         if args.max_stack_size != 0:
@@ -289,7 +297,7 @@ def extractbits():
         if (
             stacksize < 2
             or (args.strict_stack and stacksize != args.max_stack_size)
-            or len(oldstack) != len(stack)
+            or (args.double_buffer and len(oldstack) != len(stack))
         ):
             continue
 
@@ -305,13 +313,22 @@ def extractbits():
             f"normalised entropy of frames {frameidx - stacksize + 1}-{frameidx + 1} ({stacksize}): {normalentropy}",
         )
 
-        xor = np.bitwise_xor(stack, oldstack).flatten().astype(np.uint8)
+        if args.double_buffer:
+            xor = np.bitwise_xor(stack, oldstack).flatten().astype(np.uint8)
+        else:
+            xor = stack[0]
+            for i in stack[1:]:
+                xor = np.bitwise_xor(xor, i)
+            xor = xor.flatten().astype(np.uint8)
         xorsum = np.sum(xor)
+        xormean = np.mean(xor)
         normalxorsum = xorsum / 8e8
 
         log.warn(f"xor shape: {xor.shape}")
-        log.warn(f"xor sum: {np.sum(xor)}")
+        log.warn(f"xor sum: {xorsum}")
         log.warn(f"normalised xor sum: {normalxorsum}")
+        log.warn(f"mean xor: {xormean}")
+        log.warn(f"normalised mean xor: {xormean / (2**7 - 0.5)}")
 
         # TODO: ideally we would prioritise the first bits,
         #       but using a percentage of shuffled bytes is easier.

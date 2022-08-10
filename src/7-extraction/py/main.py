@@ -59,6 +59,13 @@ def parseargs():
     )
 
     parser.add_argument(
+        "-d",
+        "--double-buffer",
+        help="double buffer stack",
+        action="store_true",
+    )
+
+    parser.add_argument(
         "-G",
         "--gpu",
         help="use GPU",
@@ -198,6 +205,9 @@ def parseargs():
             + "consider using --greyscale."
         )
 
+    if not args.double_buffer:
+        args.strict_stack = True
+
 
 def argtypeuint(val):
     ival = int(val)
@@ -246,6 +256,7 @@ def getref(shape):
             args.buffer_size,
             args.cycle_rgb,
             args.stack_is_stream,
+            args.double_buffer,
             args.greyscale,
             args.binary_height,
             args.light_variation,
