@@ -210,6 +210,9 @@ def parseargs():
 
     args.files = args.files[:-specscount]
 
+    # TODO: support non-strict stack
+    args.strict_stack = True
+
 
 def argtypeuint(val):
     ival = int(val)
@@ -272,6 +275,8 @@ def extractbits():
                 continue
             frame = rgbframe
 
+        oldstack = [i for i in stack]
+
         stacksize = len(stack)
         if args.max_stack_size != 0:
             while stacksize >= args.max_stack_size:
@@ -281,17 +286,40 @@ def extractbits():
         stack.append(frame)
         frameidx += 1
 
-        if stacksize < 2 or (args.strict_stack and stacksize != args.max_stack_size):
+        if (
+            stacksize < 2
+            or (args.strict_stack and stacksize != args.max_stack_size)
+            or len(oldstack) != len(stack)
+        ):
             continue
 
         # TODO: implement joint entropy. make joint entropy default (but
         #       optional) via argparse.
         entropy, _ = func(args, stack)
+        normalentropy = entropy
         if normalise:
-            entropy /= ref
+            normalentropy /= ref
+
         log.warn(
-            f"entropy of frames {frameidx - stacksize + 1}-{frameidx + 1} ({stacksize}): {entropy}"
+            f"entropy of frames {frameidx - stacksize + 1}-{frameidx + 1} ({stacksize}): {entropy}",
+            f"normalised entropy of frames {frameidx - stacksize + 1}-{frameidx + 1} ({stacksize}): {normalentropy}",
         )
+
+        xor = np.bitwise_xor(stack, oldstack).flatten().astype(np.uint8)
+        xorsum = np.sum(xor)
+        normalxorsum = xorsum / 8e8
+
+        log.warn(f"xor shape: {xor.shape}")
+        log.warn(f"xor sum: {np.sum(xor)}")
+        log.warn(f"normalised xor sum: {normalxorsum}")
+
+        # TODO: ideally we would prioritise the first bits,
+        #       but using a percentage of shuffled bytes is easier.
+        bytescount = int(normalentropy * np.prod(xor.shape))
+        np.random.shuffle(xor)
+        entropybytes = xor[: bytescount - 1]
+
+        log.raw(entropybytes.tobytes())
 
 
 def main():
