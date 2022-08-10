@@ -60,15 +60,15 @@
   memory stays allocated to the main process even after the segmentation.
 
 
-# 6 - Video
+# 7 - Extraction
 
 ## Features
 - Implement dynamically adjusted multi-stacking.
-  - Create a subprocess for each stack.
-  - Pipe the source video to each stack, and prioritise offset frames in each
+  - [X] Create a subprocess for each stack.
+  - [ ] Pipe the source video to each stack, and prioritise offset frames in each
     stack.
-  - If entropy is too low with offset prioritisation, try shuffling offsets.
-  - Try writing the assessment part in C/C++, and calling the command from
+  - [ ] If entropy is too low with offset prioritisation, try shuffling offsets.
+  - [ ] Try writing the assessment part in C/C++, and calling the command from
     Python, consistent with the aforementioned subprocessed stack management.
 - Incorporate `XPhyro/scripts/fmapc` and accept hex pi files (as a separate
   option or automatically detected?).
