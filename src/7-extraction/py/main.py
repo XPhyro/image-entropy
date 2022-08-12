@@ -530,7 +530,7 @@ def deployextractors(shape, framesize, bufsize, normalise, ref):
                 stdin=sp.PIPE,
                 stdout=sys.stdout,
                 stderr=sys.stderr,
-                bufsize=bufsize,
+                bufsize=0,
             )
         )
 
