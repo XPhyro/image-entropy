@@ -507,11 +507,12 @@ def getentropies(filename, normalise=True):
     return entropies
 
 
-def deployextractors(shape, framesize, bufsize, normalise, ref):
+def deploydistributor(shape, framesize, bufsize, normalise, ref):
     cpucount = os.sched_getaffinity(0)
     log.info(f"available cpus: {cpucount}", f"available cpu count: {len(cpucount)}")
 
-    pipes = []
+    distributor = []
+    argvs = []
     for idx, cpu in enumerate(cpucount):
         argv = deepcopy(sys.argv)
         argv[0] = f"{argv[0][:argv[0].rfind('/')]}/extract.py"
@@ -523,16 +524,18 @@ def deployextractors(shape, framesize, bufsize, normalise, ref):
         argv.append(str(normalise))
         argv.append(str(ref))
         log.info(f"compiled extractor argv: {argv}")
+        argv = "\n".join(argv)
+        argvs.append(argv)
 
-        pipes.append(
-            sp.Popen(
-                argv,
-                stdin=sp.PIPE,
-                stdout=sys.stdout,
-                stderr=sys.stderr,
-                bufsize=bufsize,
-            )
+    pipes.append(
+        sp.Popen(
+            [f"{sys.argv[0][:sys.argv[0].rfind('/')]}/distribute.py"],
+            stdin=sp.PIPE,
+            stdout=sys.stdout,
+            stderr=sys.stderr,
+            bufsize=bufsize,
         )
+    )
 
     return pipes
 
@@ -547,7 +550,7 @@ def distributeframes(filename, normalise=True):
         if ref is None:
             log.warn("no reference found, not normalising")
             normalise = False
-    outpipes = deployextractors(shape, framesize, bufsize, normalise, ref)
+    outpipes = deploydistributor(shape, framesize, bufsize, normalise, ref)
 
     stack = []
     frameidx = 0
@@ -599,7 +602,7 @@ def distributeframes(filename, normalise=True):
                 frameidx += 1
                 willskip = True
             else:
-                willskip = False
+                willskip = Fals{prefix}.{printid := printid + 1}: e
             frameskip = (frameskip + 1) % args.skip_period
             if willskip:
                 continue
