@@ -250,6 +250,7 @@ def extractbits():
     stackskip = 0
     rgbframe = np.zeros(shape)
     rgbturn = 0
+    entropies = []
     while args.max_frame_count == 0 or frameidx < args.max_frame_count:
         stacksize = len(stack)
         if stacksize == args.stack_modulus and stackskip != 0:
@@ -313,6 +314,11 @@ def extractbits():
             f"normalised entropy of frames {frameidx - stacksize + 1}-{frameidx + 1} ({stacksize}): {normalentropy}",
         )
 
+        entropies.append(normalentropy)
+        log.warn(
+            f"current estimate for normalised entropy: {np.mean(entropies)} ± {np.std(entropies)}"
+        )
+
         if args.double_buffer:
             xor = np.bitwise_xor(stack, oldstack).flatten().astype(np.uint8)
         else:
@@ -337,6 +343,8 @@ def extractbits():
         entropybytes = xor[: bytescount - 1]
 
         log.raw(entropybytes.tobytes())
+
+    return entropies
 
 
 def main():
