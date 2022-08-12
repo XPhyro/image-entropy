@@ -15,6 +15,8 @@ spongeerr = False
 outcache = ""
 errcache = ""
 
+printid = 0
+
 
 def init(extractorid):
     global prefix
@@ -45,6 +47,14 @@ def _print(msg, file=stdout, end="\n"):
         print(msg, file=file, end=end)
 
 
+def _getprefix():
+    global printid
+
+    pfx = f"{prefix}.{printid}: "
+    printid += 1
+    return pfx
+
+
 def dumpcaches():
     global spongeout, spongeerr
 
@@ -66,18 +76,18 @@ def info(*msgs):
     if not infoenabled:
         return
     for msg in msgs:
-        _print(f"{prefix}: {msg}", file=stdout)
+        _print(f"{_getprefix()}{msg}", file=stdout)
 
 
 def warn(*msgs):
     if not warnenabled:
         return
     for msg in msgs:
-        _print(f"{prefix}: {msg}", file=stderr)
+        _print(f"{_getprefix()}{msg}", file=stderr)
 
 
 def err(*msgs):
     if not errenabled:
         return
     for msg in msgs:
-        _print(f"{prefix}: {msg}", file=stderr)
+        _print(f"{_getprefix()}{msg}", file=stderr)
