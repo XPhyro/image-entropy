@@ -56,8 +56,8 @@ def variationlight(args, stack):
     deldensity = hist / hist.sum()
     deldensity = deldensity * -_autolog(args, deldensity)
     entropy = np.sum(deldensity)
-    entropy /= 2 ** (
-        len(stack.shape) - 1
+    entropy /= len(
+        stack.shape
     )  # 4.3 Papoulis generalized sampling halves the delentropy
 
     return (entropy, (flatgrad, hist, deldensity))
@@ -85,8 +85,8 @@ def variation(args, stack):
     deldensity = hist / hist.sum()
     deldensity = deldensity * -_autolog(args, deldensity)
     entropy = np.sum(deldensity)
-    entropy /= 2 ** (
-        len(stack.shape) - 1
+    entropy /= len(
+        stack.shape
     )  # 4.3 Papoulis generalized sampling halves the delentropy
 
     return (entropy, (grad, hist, deldensity))
