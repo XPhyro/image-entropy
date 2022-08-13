@@ -135,13 +135,13 @@ shannon() {
 }
 
 rawshannon() {
-    printf "%s\0" "$@" | xargs -r0 -n 1 sh -c '
-        binfl="$(realpath -- "$1")"
-        imgfl="$(mktemp --suffix=.png)"
-        size="$(stat --printf="%s" -- "$binfl")"
-        convert -depth 8 -size "${size}x1+0" gray:"$binfl" "$imgfl"
-        src/1-assessment/main.py -m 1d-shannon -n -- "$imgfl"
-    ' -- | grep ' entropy: '
+    if [ "$#" -eq 0 ]; then
+        ent < /dev/stdin
+    else
+        for i; do
+            ent "$i"
+        done
+    fi
 }
 
 execname="$0"
