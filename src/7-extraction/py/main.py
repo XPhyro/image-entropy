@@ -526,14 +526,14 @@ def getentropies(filename, normalise=True):
 def deployextractors(shape, framesize, bufsize, normalise, ref):
     avlcpus = list(os.sched_getaffinity(0))
     avlcpus.sort()
-    avlcpuslen = len(avlcpus)
+    avlcpuscount = len(avlcpus)
     log.info(
         f"available cpus: {avlcpus}",
-        f"available cpu count: {avlcpuslen}",
+        f"available cpu count: {avlcpuscount}",
         f"ordered maximum cpu count: {args.threads}",
     )
 
-    avlcpus = avlcpus[0 : max(args.threads if args.threads != 0 else avlcpuslen, 1)]
+    avlcpus = avlcpus[0 : max(args.threads if args.threads != 0 else avlcpuscount, 1)]
 
     pipes = []
     for idx, cpu in enumerate(avlcpus):

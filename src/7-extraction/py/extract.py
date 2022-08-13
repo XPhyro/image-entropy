@@ -321,18 +321,22 @@ def extractbits():
         # TODO: implement joint entropy. make joint entropy default (but
         #       optional) via argparse.
         entropy, _ = func(args, stack)
+        log.warn(
+            f"entropy of frames {frameidx - stacksize + 1}-{frameidx + 1} ({stacksize}): {entropy}"
+        )
         normalentropy = entropy
         if normalise:
             normalentropy /= ref
-
-        log.warn(
-            f"entropy of frames {frameidx - stacksize + 1}-{frameidx + 1} ({stacksize}): {entropy}",
-            f"normalised entropy of frames {frameidx - stacksize + 1}-{frameidx + 1} ({stacksize}): {normalentropy}",
-        )
-
-        if entropy < ref * args.threshold:
-            log.warn("entropy is too low, rejecting stack")
-            continue
+            log.warn(
+                f"normalised entropy of frames {frameidx - stacksize + 1}-{frameidx + 1} ({stacksize}): {normalentropy}"
+            )
+            if normalentropy < args.threshold:
+                log.warn("entropy is too low, rejecting stack")
+                continue
+        else:
+            if entropy < ref * args.threshold:
+                log.warn("entropy is too low, rejecting stack")
+                continue
 
         entropies.append(normalentropy)  # cannot reject stack from now on
         log.warn(
