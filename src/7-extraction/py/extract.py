@@ -225,7 +225,9 @@ def parseargs():
 
     extractorindex = int(args.files[-specscount + 0])
     extractorid = int(args.files[-specscount + 1])
-    shape = np.fromstring(args.files[-specscount + 2][1:-1], dtype=int, sep=" ")
+    shape = np.fromstring(
+        args.files[-specscount + 2].replace(",", " ")[1:-1], dtype=int, sep=" "
+    )
     framesize = int(args.files[-specscount + 3])
     bufsize = int(args.files[-specscount + 4])
     normalise = bool(args.files[-specscount + 5])
