@@ -130,6 +130,20 @@ Quickly run the video sub-project using pre-set arguments.
     fi | filter
 }
 
+shannon() {
+    src/1-assessment/main.py -m 1d-shannon -n -- "$@" | grep -E ' (processing file|entropy): '
+}
+
+rawshannon() {
+    printf "%s\0" "$@" | xargs -r0 -n 1 sh -c '
+        binfl="$(realpath -- "$1")"
+        imgfl="$(mktemp --suffix=.png)"
+        size="$(stat --printf="%s" -- "$binfl")"
+        convert -depth 8 -size "${size}x1+0" gray:"$binfl" "$imgfl"
+        src/1-assessment/main.py -m 1d-shannon -n -- "$imgfl"
+    ' -- | grep ' entropy: '
+}
+
 execname="$0"
 
 [ "$#" -eq 0 ] && logerrq "no subcommand given"
@@ -138,6 +152,8 @@ shift
 case "$subcmd" in
     2|s|seg|segmentation|2-segmentation) segmentation "$@";;
     6|v|vid|video|6-video) video "$@";;
+    shannon) shannon "$@";;
+    raw-shannon) rawshannon "$@";;
     *) logerrq "invalid or not-supported subcommand";;
 esac
 
