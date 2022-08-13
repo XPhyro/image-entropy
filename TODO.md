@@ -62,11 +62,6 @@
 
 # 7 - Extraction
 
-## Bugs
-- Substacks are do not have uniform output speed, might be because writing to
-  `stdin`s take some time. Maybe try directly piping `ffmpeg` to the substacks
-  directly, if multi-piping is possible.
-
 ## Features
 - Implement dynamically adjusted multi-stacking.
   - [X] Create a subprocess for each stack.
@@ -77,3 +72,5 @@
     Python, consistent with the aforementioned subprocessed stack management.
 - Incorporate `XPhyro/scripts/fmapc` and accept hex pi files (as a separate
   option or automatically detected?).
+- Assess `/dev/urandom` reference multiple times and average instead of
+  one-shot.
