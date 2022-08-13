@@ -160,6 +160,22 @@ def parseargs():
     )
 
     parser.add_argument(
+        "-T",
+        "--threshold",
+        help="threshold for ratio of reference entropy to accept stacks",
+        type=float,
+        default=0,
+    )
+
+    parser.add_argument(
+        "-t",
+        "--threads",
+        help="thred count. 0 is as many as available. default is 0.",
+        type=int,
+        default=0,
+    )
+
+    parser.add_argument(
         "-W",
         "--binary-width",
         help="width of the video if -B is given. default is 1920.",
@@ -314,7 +330,11 @@ def extractbits():
             f"normalised entropy of frames {frameidx - stacksize + 1}-{frameidx + 1} ({stacksize}): {normalentropy}",
         )
 
-        entropies.append(normalentropy)
+        if entropy < ref * args.threshold:
+            log.warn("entropy is too low, rejecting stack")
+            continue
+
+        entropies.append(normalentropy)  # cannot reject stack from now on
         log.warn(
             f"current estimate for normalised entropy: {np.mean(entropies)} ± {np.std(entropies)}"
         )
@@ -336,11 +356,15 @@ def extractbits():
         log.warn(f"mean xor: {xormean}")
         log.warn(f"normalised mean xor: {xormean / (2**7 - 0.5)}")
 
-        # TODO: ideally we would prioritise the first bits,
-        #       but using a percentage of shuffled bytes is easier.
-        bytescount = int(normalentropy * np.prod(xor.shape))
-        np.random.shuffle(xor)
-        entropybytes = xor[: bytescount - 1]
+        partialprint = False
+        if partialprint:
+            # TODO: ideally we would prioritise the first bits,
+            #       but using a percentage of shuffled bytes is easier.
+            bytescount = int(normalentropy * np.prod(xor.shape))
+            np.random.shuffle(xor)
+            entropybytes = xor[: bytescount - 1]
+        else:
+            entropybytes = xor
 
         log.raw(entropybytes.tobytes())
 

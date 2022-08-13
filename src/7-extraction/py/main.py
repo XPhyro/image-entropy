@@ -160,6 +160,22 @@ def parseargs():
     )
 
     parser.add_argument(
+        "-T",
+        "--threshold",
+        help="threshold for ratio of reference entropy to accept stacks. default is 0.",
+        type=float,
+        default=0,
+    )
+
+    parser.add_argument(
+        "-t",
+        "--threads",
+        help="thred count. 0 is as many as available. default is 0.",
+        type=int,
+        default=0,
+    )
+
+    parser.add_argument(
         "-W",
         "--binary-width",
         help="width of the video if -B is given. default is 1920.",
@@ -508,11 +524,19 @@ def getentropies(filename, normalise=True):
 
 
 def deployextractors(shape, framesize, bufsize, normalise, ref):
-    cpucount = os.sched_getaffinity(0)
-    log.info(f"available cpus: {cpucount}", f"available cpu count: {len(cpucount)}")
+    avlcpus = list(os.sched_getaffinity(0))
+    avlcpus.sort()
+    avlcpuslen = len(avlcpus)
+    log.info(
+        f"available cpus: {avlcpus}",
+        f"available cpu count: {avlcpuslen}",
+        f"ordered maximum cpu count: {args.threads}",
+    )
+
+    avlcpus = avlcpus[0 : max(args.threads if args.threads != 0 else avlcpuslen, 1)]
 
     pipes = []
-    for idx, cpu in enumerate(cpucount):
+    for idx, cpu in enumerate(avlcpus):
         argv = deepcopy(sys.argv)
         argv[0] = f"{argv[0][:argv[0].rfind('/')]}/extract.py"
         argv.append(str(idx))
