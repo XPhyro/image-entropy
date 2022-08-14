@@ -87,6 +87,11 @@ def getargs():
     )
 
     parser.add_argument(
+        "--pi-path",
+        help="normalise reshape tests using binary pi",
+    )
+
+    parser.add_argument(
         "-R",
         "--test-reshape",
         help="execute all tests with reshaping",

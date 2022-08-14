@@ -84,17 +84,21 @@ def main():
 
     if args.test_reshape:
         entropyarrs = []
+        normalisedentropyarrs = []
         widtharrs = []
         heightarrs = []
 
         for i, (testname, testfunc) in enumerate(testimages.strtofunc.items()):
             plt.figure(i + 1)
             entropies = []
+            if args.pi_path:
+                normalisedentropies = []
             widths = []
             heights = []
 
             width = args.test_width
             height = args.test_height
+
             while width >= 2:
                 greyimg = testfunc(width, height)
                 colourimg = cv.cvtColor(greyimg, cv.COLOR_GRAY2RGB)
@@ -107,6 +111,16 @@ def main():
                 widths.append(width)
                 heights.append(height)
 
+                if args.pi_path:
+                    with open(args.pi_path, "rb") as pifl:
+                        buf = pifl.read(width * height)
+
+                    piarr = np.frombuffer(buf, dtype=np.uint8).reshape((height, width))
+                    pientropy = methods.strtofunc[args.method](
+                        args, cv.cvtColor(piarr, cv.COLOR_GRAY2RGB), piarr
+                    )[0]
+                    normalisedentropies.append(entropy / pientropy)
+
                 width = int(width / 2)
                 height = int(height * 2)
 
@@ -115,11 +129,22 @@ def main():
             plt.tight_layout()
             plt.savefig(f"{testname}_{args.method}.pdf", bbox_inches="tight")
 
+            if args.pi_path:
+                plt.figure(len(testimages.strtofunc) + i + 1)
+                plt.plot(np.arange(len(widths)), normalisedentropies)
+                plt.title(f"normalised {args.method}: {testname}")
+                plt.tight_layout()
+                plt.savefig(
+                    f"{testname}_{args.method}_normalised.pdf", bbox_inches="tight"
+                )
+                normalisedentropyarrs.append(normalisedentropies)
+
             entropyarrs.append(entropies)
             widtharrs.append(widths)
             heightarrs.append(heights)
 
         print(f"entarrs = {repr(entropyarrs)}")
+        print(f"normentarrs = {repr(normalisedentropyarrs)}")
         print(f"warrs = {repr(widtharrs)}")
         print(f"harrs = {repr(heightarrs)}")
 
