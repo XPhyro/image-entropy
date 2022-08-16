@@ -74,3 +74,8 @@
   option or automatically detected?).
 - Assess `/dev/urandom` reference multiple times and average instead of
   one-shot.
+- Accept `ffmpeg` options. Options that change essential parameters that are
+  obtained via `ffprobe` such as `-filter:v "crop=w:h:x:y"` should be paid
+  attention to.
+  - Maybe obtain a sample frame from `ffmpeg` and set parameters from that
+    frame?
