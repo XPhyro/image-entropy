@@ -59,6 +59,40 @@ def parseargs():
     )
 
     parser.add_argument(
+        "--crop",
+        help="enable cropping",
+        action="store_true",
+    )
+
+    parser.add_argument(
+        "--crop-left",
+        help="crop from left. has no effect if --crop is not given.",
+        type=argtypeuint,
+        default=0,
+    )
+
+    parser.add_argument(
+        "--crop-right",
+        help="crop from right. has no effect if --crop is not given.",
+        type=argtypeuint,
+        default=2**64 - 1,
+    )
+
+    parser.add_argument(
+        "--crop-up",
+        help="crop from up. has no effect if --crop is not given.",
+        type=argtypeuint,
+        default=0,
+    )
+
+    parser.add_argument(
+        "--crop-down",
+        help="crop from down. has no effect if --crop is not given.",
+        type=argtypeuint,
+        default=2**64 - 1,
+    )
+
+    parser.add_argument(
         "-d",
         "--double-buffer",
         help="double buffer stack",
@@ -550,8 +584,8 @@ def deployextractors(shape, framesize, bufsize, normalise, ref):
         argv.append(str(idx))
         argv.append(str(cpu))
         argv.append(str(shape))
-        argv.append(str(framesize))
         argv.append(str(bufsize))
+        argv.append(str(framesize))
         argv.append(str(normalise))
         argv.append(str(ref))
         log.info(f"compiled extractor argv: {argv}")
@@ -644,7 +678,16 @@ def distributeframes(filename, normalise=True):
                 outpipestoremove.append(outpipeidx)
                 continue
             try:
-                outpipe.stdin.write(rawframe)
+                if args.crop:
+                    rawframe = inpipe.stdout.read(framesize)
+                    frame = np.frombuffer(rawframe, dtype=np.uint8)
+                    frame = frame.reshape(shape)[
+                        args.crop_left : args.crop_right,
+                        args.crop_up : args.crop_down,
+                    ]
+                    outpipe.stdin.write(frame.tobytes())
+                else:
+                    outpipe.stdin.write(rawframe)
             except BrokenPipeError:
                 log.err(f"pipe {outpipe} is broken, removing")
                 outpipestoremove.append(outpipeidx)
