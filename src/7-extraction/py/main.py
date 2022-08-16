@@ -66,6 +66,13 @@ def parseargs():
     )
 
     parser.add_argument(
+        "-f",
+        "--binary_filter",
+        help="read binary file with custom filter in the form `$binary_filter -- $filename`. default is cat.",
+        default="cat",
+    )
+
+    parser.add_argument(
         "-G",
         "--gpu",
         help="use GPU",
@@ -268,22 +275,23 @@ def getref(shape):
     argparams = ", ".join(
         str(i)
         for i in [
-            args.abstract_entropy,
-            args.buffer_size,
-            args.cycle_rgb,
-            args.stack_is_stream,
-            args.double_buffer,
-            args.greyscale,
-            args.binary_height,
-            args.light_variation,
-            args.stack_period,
-            args.stack_modulus,
-            args.max_frame_count,
-            args.skip_period,
-            args.strict_stack,
-            args.max_stack_size,
-            args.binary_width,
-            args.binary_color,
+            f"abstract entropy: {args.abstract_entropy}",
+            f"buffer size: {args.buffer_size}",
+            f"cycle rgb: {args.cycle_rgb}",
+            f"stack is stream: {args.stack_is_stream}",
+            f"double buffer: {args.double_buffer}",
+            f"greyscale: {args.greyscale}",
+            f"binary height: {args.binary_height}",
+            f"light variation: {args.light_variation}",
+            f"stack period: {args.stack_period}",
+            f"stack modulus: {args.stack_modulus}",
+            f"max frame count: {args.max_frame_count}",
+            f"skip period: {args.skip_period}",
+            f"strict stack: {args.strict_stack}",
+            f"max stack size: {args.max_stack_size}",
+            f"binary width: {args.binary_width}",
+            f"binary color: {args.binary_color}",
+            f"binary filter: {args.binary_filter}",
         ]
     )
     hashstr = f"[{shapeparams}], [{argparams}]"
@@ -360,7 +368,7 @@ def getpipes(filename):
         framesize = int(np.prod(shape, dtype=int))
         log.info(f"shape: {shape}", f"frame size: {framesize}")
 
-        argv = ["cat", "--", filename]
+        argv = [args.binary_filter, "--", filename]
         log.info(f"compiled reader argv: {argv}")
 
         bufsize = (framesize + 1) * args.buffer_size
