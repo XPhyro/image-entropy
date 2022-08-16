@@ -59,20 +59,6 @@ def parseargs():
     )
 
     parser.add_argument(
-        "-C",
-        "--cycle-rgb",
-        help="cycle usage of r, g and b channels",
-        action="store_true",
-    )
-
-    parser.add_argument(
-        "-c",
-        "--stack-is-stream",
-        help="sync stack period, stack modulus and maximum stack size to stream count. overrides -M, -m and -s.",
-        action="store_true",
-    )
-
-    parser.add_argument(
         "--crop",
         help="enable cropping",
         action="store_true",

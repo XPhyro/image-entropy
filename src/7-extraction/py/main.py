@@ -325,6 +325,11 @@ def getref(shape):
             f"binary width: {args.binary_width}",
             f"binary color: {args.binary_color}",
             f"binary filter: {args.binary_filter}",
+            f"crop: {args.crop}",
+            f"crop left: {args.crop_left}",
+            f"crop right: {args.crop_right}",
+            f"crop up: {args.crop_up}",
+            f"crop down: {args.crop_down}",
         ]
     )
     hashstr = f"[{shapeparams}], [{argparams}]"
@@ -401,6 +406,12 @@ def getpipes(filename):
         framesize = int(np.prod(shape, dtype=int))
         log.info(f"shape: {shape}", f"frame size: {framesize}")
 
+        realshape = list(shape)
+        if args.crop:
+            realshape[0] = min(realshape[0], args.crop_right - args.crop_left)
+            realshape[1] = min(realshape[1], args.crop_down - args.crop_up)
+            log.info(f"cropped shape: {shape}")
+
         argv = [args.binary_filter, "--", filename]
         log.info(f"compiled reader argv: {argv}")
 
@@ -436,6 +447,11 @@ def getpipes(filename):
             shape = np.array(shape)
             framesize = int(np.prod(shape, dtype=int))
             log.info(f"shape: {shape}", f"frame size: {framesize}")
+
+            if args.crop:
+                realshape[0] = min(realshape[0], args.crop_right - args.crop_left)
+                realshape[1] = min(realshape[1], args.crop_down - args.crop_up)
+                log.info(f"cropped shape: {realshape}")
 
             argv = (
                 ffm.input(filename)
@@ -531,6 +547,12 @@ def getentropies(filename, normalise=True):
 
         frame = np.frombuffer(rawframe, dtype=np.uint8)
         frame = frame.reshape(shape)
+        if args.crop:
+            frame = frame[
+                args.crop_left : args.crop_right,
+                args.crop_up : args.crop_down,
+            ]
+            outpipe.stdin.write(frame.tobytes())
 
         if args.cycle_rgb:
             rgbframe[:, :, rgbturn] = frame[:, :, rgbturn]
@@ -576,13 +598,18 @@ def deployextractors(shape, framesize, bufsize, normalise, ref):
 
     avlcpus = avlcpus[0 : max(args.threads if args.threads != 0 else avlcpuscount, 1)]
 
+    realshape = list(shape)
+    if args.crop:
+        realshape[0] = min(realshape[0], args.crop_right - args.crop_left)
+        realshape[1] = min(realshape[1], args.crop_down - args.crop_up)
+
     pipes = []
     for idx, cpu in enumerate(avlcpus):
         argv = deepcopy(sys.argv)
         argv[0] = f"{argv[0][:argv[0].rfind('/')]}/extract.py"
         argv.append(str(idx))
         argv.append(str(cpu))
-        argv.append(str(shape))
+        argv.append(str(realshape))
         argv.append(str(bufsize))
         argv.append(str(framesize))
         argv.append(str(normalise))
