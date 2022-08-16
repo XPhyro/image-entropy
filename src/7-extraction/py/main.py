@@ -44,6 +44,12 @@ def parseargs():
     )
 
     parser.add_argument(
+        "--benchmark",
+        help="run extractors using `perf stat time -v ./extract.py $@`",
+        action="store_true",
+    )
+
+    parser.add_argument(
         "-C",
         "--cycle-rgb",
         help="cycle usage of r, g and b channels",
@@ -519,7 +525,7 @@ def getentropies(filename, normalise=True):
 
         # TODO: implement joint entropy. make joint entropy default (but
         #       optional) via argparse.
-        entropy, _ = func(args, stack)
+        entropy = func(args, stack)
         if normalise:
             entropy /= ref
         entropies.append(entropy)
@@ -545,7 +551,9 @@ def deployextractors(shape, framesize, bufsize, normalise, ref):
     pipes = []
     for idx, cpu in enumerate(avlcpus):
         argv = deepcopy(sys.argv)
+
         argv[0] = f"{argv[0][:argv[0].rfind('/')]}/extract.py"
+
         argv.append(str(idx))
         argv.append(str(cpu))
         argv.append(str(shape))
@@ -553,6 +561,13 @@ def deployextractors(shape, framesize, bufsize, normalise, ref):
         argv.append(str(bufsize))
         argv.append(str(normalise))
         argv.append(str(ref))
+
+        if args.benchmark:
+            argv.insert(0, "perf")
+            argv.insert(1, "stat")
+            argv.insert(2, "time")
+            argv.insert(3, "-v")
+
         log.info(f"compiled extractor argv: {argv}")
 
         pipes.append(

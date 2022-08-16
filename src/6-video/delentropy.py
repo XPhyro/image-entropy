@@ -35,14 +35,16 @@ def _autolog(args, arr):
 
 
 def variationlight(args, stack):
-    stack = np.array(stack)
+    stackarr = np.array(stack)
+    stackshape = stackarr.shape
     ### 1609.01117 page 10
 
-    flatgrad = np.array(np.gradient(stack)).flatten()
+    flatgrad = np.array(np.gradient(stackarr)).flatten()
+    del stackarr
 
-    # ensure $-255 \leq J \leq 255$
-    jrng = np.max(np.abs(flatgrad))
-    assert jrng <= 255, "J must be in range [-255, 255]"
+    # # ensure $-255 \leq J \leq 255$
+    # jrng = np.max(np.abs(flatgrad))
+    # assert jrng <= 255, "J must be in range [-255, 255]"
 
     ### 1609.01117 page 16
 
@@ -50,28 +52,33 @@ def variationlight(args, stack):
         flatgrad,
         bins=256,
     )
+    del flatgrad
 
     ### 1609.01117 page 22
 
     deldensity = hist / hist.sum()
+    del hist
     deldensity = deldensity * -_autolog(args, deldensity)
     entropy = np.sum(deldensity)
+    del deldensity
     entropy /= len(
-        stack.shape
+        stackshape
     )  # 4.3 Papoulis generalized sampling halves the delentropy
 
-    return (entropy, (flatgrad, hist, deldensity))
+    return entropy
 
 
 def variation(args, stack):
-    stack = np.array(stack)
+    stackarr = np.array(stack)
+    stackshape = stackarr.shape
     ### 1609.01117 page 10
 
-    grad = np.array([f.astype(int).flatten() for f in np.gradient(stack)])
+    grad = np.array([f.astype(int).flatten() for f in np.gradient(stackarr)])
+    del stackarr
 
-    # ensure $-255 \leq J \leq 255$
-    jrng = np.max(np.abs(grad))
-    assert jrng <= 255, "J must be in range [-255, 255]"
+    # # ensure $-255 \leq J \leq 255$
+    # jrng = np.max(np.abs(grad))
+    # assert jrng <= 255, "J must be in range [-255, 255]"
 
     ### 1609.01117 page 16
 
@@ -79,14 +86,17 @@ def variation(args, stack):
         np.vstack(grad).transpose(),
         bins=256,
     )
+    del grad
 
     ### 1609.01117 page 22
 
     deldensity = hist / hist.sum()
+    del hist
     deldensity = deldensity * -_autolog(args, deldensity)
     entropy = np.sum(deldensity)
+    del deldensity
     entropy /= len(
-        stack.shape
+        stackshape
     )  # 4.3 Papoulis generalized sampling halves the delentropy
 
-    return (entropy, (grad, hist, deldensity))
+    return entropy

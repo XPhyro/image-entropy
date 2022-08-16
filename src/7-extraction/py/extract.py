@@ -3,11 +3,13 @@
 
 import argparse
 import sys
+import time
 
 import numpy as np
 
 import delentropy
 import log
+import util
 
 
 def parseargs():
@@ -42,6 +44,12 @@ def parseargs():
         help="count of frames to buffer. default is 4.",
         type=argtypepint,
         default=4,
+    )
+
+    parser.add_argument(
+        "--benchmark",
+        help="run extractors using `perf stat time -v ./extract.py $@`",
+        action="store_true",
     )
 
     parser.add_argument(
@@ -269,6 +277,8 @@ def extractbits():
     rgbturn = 0
     entropies = []
     while args.max_frame_count == 0 or frameidx < args.max_frame_count:
+        util.savestart()
+
         stacksize = len(stack)
         if stacksize == args.stack_modulus and stackskip != 0:
             stackskip -= 1
@@ -321,7 +331,7 @@ def extractbits():
 
         # TODO: implement joint entropy. make joint entropy default (but
         #       optional) via argparse.
-        entropy, _ = func(args, stack)
+        entropy = func(args, stack)
         log.warn(
             f"entropy of frames {frameidx - stacksize + 1}-{frameidx + 1} ({stacksize}): {entropy}"
         )
@@ -372,6 +382,8 @@ def extractbits():
             entropybytes = xor
 
         log.raw(entropybytes.tobytes())
+
+        log.warn(f"total time spent on frame: {util.getdiff()}")
 
     return entropies
 
