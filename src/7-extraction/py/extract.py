@@ -263,7 +263,6 @@ def extractbits():
     frameidx = 0
     frameskip = 0
     willskip = False
-    pipeidx = 0
     stackidx = 0
     stackskip = 0
     rgbframe = np.zeros(shape)
@@ -302,7 +301,7 @@ def extractbits():
             frame = rgbframe
 
         if args.double_buffer:
-            oldstack = [i for i in stack]
+            oldstack = list(stack)
 
         stacksize = len(stack)
         if args.max_stack_size != 0:
