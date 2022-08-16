@@ -82,6 +82,18 @@ def main():
     if not args.white_background:
         plt.style.use("dark_background")
 
+    if args.dump_bytes:
+        for fl in args.files:
+            if args.use_tests:
+                greyimg = testimages.strtofunc[fl](
+                    args.test_width, args.test_height
+                ).astype(np.uint8)
+            else:
+                inputimg = cv.imread(fl)
+                greyimg = cv.cvtColor(inputimg, cv.COLOR_BGR2GRAY).astype(np.uint8)
+            sys.stdout.buffer.write(greyimg.tobytes())
+            sys.exit(0)
+
     if args.test_reshape:
         entropyarrs = []
         normalisedentropyarrs = []

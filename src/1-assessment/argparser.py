@@ -21,6 +21,13 @@ def getargs():
     )
 
     parser.add_argument(
+        "-d",
+        "--dump-bytes",
+        help="dump given images as raw bytes to stdout",
+        action="store_true",
+    )
+
+    parser.add_argument(
         "-g",
         "--no-grey-image",
         help="do not display greyscale image on plot.",
