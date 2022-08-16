@@ -4,7 +4,6 @@
 import sys
 
 import cv2 as cv
-import numpy as np
 
 
 def gstreamer_pipeline(
@@ -17,21 +16,13 @@ def gstreamer_pipeline(
     flip_method=2,
 ):
     return (
-        "nvarguscamerasrc sensor-id=%d !"
-        "video/x-raw(memory:NVMM), width=(int)%d, height=(int)%d, framerate=(fraction)%d/1 ! "
-        "nvvidconv flip-method=%d ! "
-        "video/x-raw, width=(int)%d, height=(int)%d, format=(string)BGRx ! "
+        "nvarguscamerasrc sensor-id={sensor_id} ! "
+        "video/x-raw(memory:NVMM), width=(int){capture_width}, height=(int){capture_height}, framerate=(fraction){framerate}/1 ! "
+        "nvvidconv flip-method={flip_method} ! "
+        "video/x-raw, width=(int){display_width}, height=(int){display_height}, format=(string)BGRx !"
         "videoconvert ! "
-        "video/x-raw, format=(string)BGR ! appsink"
-        % (
-            sensor_id,
-            capture_width,
-            capture_height,
-            framerate,
-            flip_method,
-            display_width,
-            display_height,
-        )
+        "video/x-raw, format=(string)BGR ! "
+        "appsink"
     )
 
 

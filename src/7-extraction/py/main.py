@@ -8,7 +8,6 @@ import json
 import os
 import subprocess as sp
 import sys
-import time
 
 import ffmpeg as ffm
 import numpy as np
@@ -637,8 +636,7 @@ def distributeframes(filename, normalise=True):
                 continue
 
         outpipestoremove = []
-        for outpipeidx in range(len(outpipes)):
-            outpipe = outpipes[outpipeidx]
+        for outpipeidx, outpipe in enumerate(outpipes):
             if not outpipe.stdin.writable():
                 log.err(f"pipe {outpipe} is not writable, removing")
                 outpipestoremove.append(outpipeidx)
