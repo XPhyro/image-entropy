@@ -73,7 +73,7 @@ def variation(args, stack):
     stackshape = stackarr.shape
     ### 1609.01117 page 10
 
-    grad = np.array([f.astype(int).flatten() for f in np.gradient(stackarr)])
+    grad = np.array([f.astype(np.int16).flatten() for f in np.gradient(stackarr)])
     del stackarr
 
     # # ensure $-255 \leq J \leq 255$
