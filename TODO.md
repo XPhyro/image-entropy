@@ -79,3 +79,5 @@
   attention to.
   - Maybe obtain a sample frame from `ffmpeg` and set parameters from that
     frame?
+- Test entropy bits before printing:
+  - [ ] Normalised mean XOR should be close to 1.
