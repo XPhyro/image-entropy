@@ -80,4 +80,7 @@
   - Maybe obtain a sample frame from `ffmpeg` and set parameters from that
     frame?
 - Test entropy bits before printing:
+  - [ ] Normalised entropy should be close to 1.
   - [ ] Normalised mean XOR should be close to 1.
+  - [ ] Reused frame count compared to the last stack should not be too high.
+  - [ ] Should Shannon entropy be tested in addition to the delentropy variation?
