@@ -39,7 +39,7 @@ def variationlight(args, stack):
     stackshape = stackarr.shape
     ### 1609.01117 page 10
 
-    flatgrad = np.array(np.gradient(stackarr)).flatten()
+    flatgrad = np.array(np.gradient(stackarr)).astype(np.int16).flatten()
     del stackarr
 
     # # ensure $-255 \leq J \leq 255$
